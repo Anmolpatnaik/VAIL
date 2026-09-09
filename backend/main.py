@@ -44,9 +44,11 @@ app.include_router(opamp_router, prefix="/api/opamp", tags=["Op-Amp"])
 
 # 4. Health checks
 @app.get("/")
+@app.get("/api")
 def root():
     return {"status": "Master Server is Running and Ready!", "version": "1.0.0"}
 
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
     return {"status": "healthy", "service": "vail-backend"}
