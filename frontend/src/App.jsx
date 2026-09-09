@@ -1287,12 +1287,12 @@ function ContactPage({ onBack, isDark }) {
 
 function VideoGuideSection({ experiment, onVideoComplete, isCompleted, onNext }) {
   const videoMap = {
-    rc: { title: "RC Circuit Charging & Discharging Tutorial", src: "/videos/rc.mp4", summary: "Detailed demonstration of capacitor charging, time constant calculation, and voltage-time curve plotting." },
-    hysteresis: { title: "Hysteresis Loss & B-H Loop Tutorial", src: "/videos/hysteresis.mp4", summary: "Demonstration of cyclic core magnetization, loop area integration, and coercivity/remanence extraction." },
-    string: { title: "Vibrations on String Tutorial", src: "/videos/string.mp4", summary: "Demonstration of standing wave nodes, antinodes, tension adjustment, and harmonic frequency verification." },
-    impulse: { title: "Impulse-Momentum Theorem Tutorial", src: "/videos/impulse.mp4", summary: "Demonstration of collision dynamics, force-time graphs, and impulse calculation." },
-    edm: { title: "Smart ZNC EDM Operation Tutorial", src: "/videos/edm.mp4", summary: "Detailed demonstration of parameter setup, pulse timing configuration, and calculating the Material Removal Rate (MRR)." },
-    opamp: { title: "Op-Amp Gain & Characteristics Tutorial", src: "/videos/opamp.mp4", summary: "Learn to configure inverting/non-inverting modes, measure voltage gain, and observe saturation limits." },
+    rc: { title: "RC Circuit Charging & Discharging Tutorial", src: "/videos/rc.mp4", hasVideo: true, summary: "Detailed demonstration of capacitor charging, time constant calculation, and voltage-time curve plotting." },
+    hysteresis: { title: "Hysteresis Loss & B-H Loop Tutorial", src: "/videos/hysteresis.mp4", hasVideo: true, summary: "Demonstration of cyclic core magnetization, loop area integration, and coercivity/remanence extraction." },
+    string: { title: "Vibrations on String Tutorial", src: "/videos/string.mp4", hasVideo: true, summary: "Demonstration of standing wave nodes, antinodes, tension adjustment, and harmonic frequency verification." },
+    impulse: { title: "Impulse-Momentum Theorem Tutorial", src: "/videos/impulse.mp4", hasVideo: true, summary: "Demonstration of collision dynamics, force-time graphs, and impulse calculation." },
+    edm: { title: "Smart ZNC EDM Operation Briefing", src: null, hasVideo: false, summary: "Interactive simulation guide: Study current, pulse timing, and spark dynamics on Material Removal Rate (MRR)." },
+    opamp: { title: "Op-Amp Gain & Characteristics Briefing", src: null, hasVideo: false, summary: "Interactive circuit guide: Explore inverting & non-inverting topologies, voltage gain, and rail saturation." },
   };
 
   const video = videoMap[experiment];
@@ -1314,7 +1314,7 @@ function VideoGuideSection({ experiment, onVideoComplete, isCompleted, onNext })
             fontWeight: "700",
           }}
         >
-          {isCompleted ? "✓ Tutorial Completed" : "⏳ Watch Video to Completion to Unlock Modules"}
+          {isCompleted ? "✓ Tutorial Completed" : video.hasVideo ? "⏳ Watch Video to Completion to Unlock Modules" : "📋 Review Briefing to Proceed"}
         </span>
       </div>
 
@@ -1322,18 +1322,36 @@ function VideoGuideSection({ experiment, onVideoComplete, isCompleted, onNext })
         <h3 style={{ marginTop: 0, color: "#38bdf8" }}>{video.title}</h3>
         <p style={{ color: "#94a3b8", fontSize: "14px", marginBottom: "16px", lineHeight: "1.6" }}>{video.summary}</p>
 
-        <div style={{ width: "100%", borderRadius: "10px", overflow: "hidden", border: "1px solid #1e3a5f", background: "#000000" }}>
-          <video
-            controls
-            playsInline
-            key={video.src}
-            src={video.src}
-            onEnded={onVideoComplete}
-            style={{ width: "100%", maxHeight: "520px", display: "block", outline: "none" }}
-          >
-            Your browser does not support HTML5 video playback.
-          </video>
-        </div>
+        {video.hasVideo ? (
+          <div style={{ width: "100%", borderRadius: "10px", overflow: "hidden", border: "1px solid #1e3a5f", background: "#000000" }}>
+            <video
+              controls
+              playsInline
+              key={video.src}
+              src={video.src}
+              onEnded={onVideoComplete}
+              style={{ width: "100%", maxHeight: "520px", display: "block", outline: "none" }}
+            >
+              Your browser does not support HTML5 video playback.
+            </video>
+          </div>
+        ) : (
+          <div style={{ padding: "36px 20px", borderRadius: "10px", border: "1px dashed #38bdf8", background: "rgba(15, 23, 42, 0.6)", textAlign: "center" }}>
+            <div style={{ fontSize: "42px", marginBottom: "12px" }}>🔬</div>
+            <h4 style={{ margin: "0 0 8px 0", color: "#f8fafc", fontSize: "18px" }}>Interactive 3D Lab Ready</h4>
+            <p style={{ margin: "0 auto 18px", maxWidth: "560px", color: "#94a3b8", fontSize: "14px", lineHeight: "1.6" }}>
+              The interactive 3D laboratory workbench is pre-configured and ready. You can review the theory, execute live simulations, and record experimental observation slots.
+            </p>
+            {!isCompleted && (
+              <button
+                onClick={onVideoComplete}
+                style={{ padding: "10px 22px", borderRadius: "8px", border: "1px solid #38bdf8", background: "#0284c7", color: "#ffffff", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}
+              >
+                Acknowledge & Unlock Laboratory Modules →
+              </button>
+            )}
+          </div>
+        )}
 
         <div style={{ marginTop: "18px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", paddingTop: "14px", borderTop: "1px solid #1e293b" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

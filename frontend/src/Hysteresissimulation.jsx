@@ -1,6 +1,7 @@
 //export default function HysteresisSimulation({ onSaveData }) {
 import { useEffect, useRef, useState } from "react";
 import Hysteresis3D from "./Hysteresis3D";
+import { ENDPOINTS } from "./apiConfig";
 
 /*
 =========================================================
@@ -286,7 +287,7 @@ export default function HysteresisSimulation({ onSaveData }) {
   const runBackendSimulation = async () => {
     try {
       setBackendStatus("Connecting to hysteresis backend...");
-      const response = await fetch("http://127.0.0.1:8000/simulate", {
+      const response = await fetch(ENDPOINTS.hysteresisSimulate, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

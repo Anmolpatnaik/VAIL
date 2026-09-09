@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Scene3D from "./impulsemomentum3d";
 import CollisionCharts from "./impulsemomentumcharts"; // Import the new charts
+import { ENDPOINTS } from "./apiConfig";
 
 export default function ImpulseMomentum({ onSaveData }) {
   const [params, setParams] = useState({
@@ -22,19 +23,38 @@ export default function ImpulseMomentum({ onSaveData }) {
 
   const handleSimulate = async () => {
     try {
-      const response = await fetch('http://localhost:8000/collision', {
+      const response = await fetch(ENDPOINTS.impulseCollision, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
       });
       
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       setResults(data);
       setIsPlaying(true);
       setSceneKey((prev) => prev + 1); 
     } catch (error) {
-      console.error("Simulation failed:", error);
-      alert("Backend connection failed. Ensure main.py is running on port 8002.");
+      console.warn("Backend collision service unavailable, falling back to local physics:", error);
+      const m1 = params.mass_1, m2 = params.mass_2;
+      const u1 = params.initial_velocity_1, u2 = params.initial_velocity_2;
+      const e = params.restitution_coefficient;
+      const totalMass = m1 + m2;
+      const v1 = ((m1 - e * m2) * u1 + (1 + e) * m2 * u2) / totalMass;
+      const v2 = ((1 + e) * m1 * u1 + (m2 - e * m1) * u2) / totalMass;
+      const pInitial = m1 * u1 + m2 * u2;
+      const pFinal = m1 * v1 + m2 * v2;
+      const keInitial = 0.5 * m1 * (u1 ** 2) + 0.5 * m2 * (u2 ** 2);
+      const keFinal = 0.5 * m1 * (v1 ** 2) + 0.5 * m2 * (v2 ** 2);
+      setResults({
+        success: true,
+        restitution_coefficient: e,
+        object_1: { mass_kg: m1, initial_velocity_m_per_s: u1, final_velocity_m_per_s: Number(v1.toFixed(4)), impulse_N_s: Number((m1 * (v1 - u1)).toFixed(4)) },
+        object_2: { mass_kg: m2, initial_velocity_m_per_s: u2, final_velocity_m_per_s: Number(v2.toFixed(4)), impulse_N_s: Number((m2 * (v2 - u2)).toFixed(4)) },
+        system: { total_initial_momentum: Number(pInitial.toFixed(4)), total_final_momentum: Number(pFinal.toFixed(4)), initial_kinetic_energy_J: Number(keInitial.toFixed(4)), final_kinetic_energy_J: Number(keFinal.toFixed(4)), kinetic_energy_loss_J: Number((keInitial - keFinal).toFixed(4)) }
+      });
+      setIsPlaying(true);
+      setSceneKey((prev) => prev + 1);
     }
   };
 
