@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import OpAmp3D from "./OpAmp3D";
+import ValidatedParameterControl from "./ValidatedParameterControl";
 
 export default function OpAmpSimulation({ onSaveData }) {
   const [config, setConfig] = useState("inverting");
@@ -7,6 +8,10 @@ export default function OpAmpSimulation({ onSaveData }) {
   const [r1, setR1] = useState(10);
   const [rf, setRf] = useState(50);
   const [vcc, setVcc] = useState(12);
+
+  const [invalidInputs, setInvalidInputs] = useState({});
+  const hasInvalid = Object.values(invalidInputs).some(Boolean);
+  const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
   
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,7 +20,8 @@ export default function OpAmpSimulation({ onSaveData }) {
   const handleSimulate = () => {
     setLoading(true);
     setTimeout(() => {
-      const gain = config === "inverting" ? - (rf / r1) : (1 + (rf / r1));
+      const safeR1 = Math.max(r1 || 0, 0.1);
+      const gain = config === "inverting" ? - (rf / safeR1) : (1 + (rf / safeR1));
       let vout = gain * vin;
       const isSaturated = Math.abs(vout) >= vcc;
       if (vout > vcc) vout = vcc;
@@ -28,6 +34,16 @@ export default function OpAmpSimulation({ onSaveData }) {
   };
 
   const handleStop = () => {
+    setIsRunning(false);
+    setResults(null);
+    setLoading(false);
+  };
+
+  const handleReset = () => {
+    setVin(0.0);
+    setR1(10);
+    setRf(50);
+    setConfig("inverting");
     setIsRunning(false);
     setResults(null);
     setLoading(false);
@@ -56,109 +72,135 @@ export default function OpAmpSimulation({ onSaveData }) {
       <div style={{ display: "grid", gridTemplateColumns: "300px minmax(0, 1fr)", gap: "20px", alignItems: "start" }}>
         
         {/* Control Panel */}
-        <div style={{ padding: "20px", border: "1px solid #d9e0e8", borderRadius: "12px", background: "#f8fafc", boxShadow: "0 2px 8px rgba(15,23,42,0.06)" }}>
-          {/* Increased font size, bolder weight */}
-          <div style={{ fontSize: "19px", fontWeight: "800", marginBottom: "18px", color: "#0f172a" }}>
+        <div className="sim-control-panel">
+          <div className="sim-panel-title">
             Circuit Parameters
           </div>
 
+          {/* LABORATORY REAL-TIME CALIBRATION CAUTION */}
+          <div className="lab-caution-banner" style={{ marginBottom: "16px" }}>
+            <span className="lab-caution-icon">⚠️</span>
+            <div className="lab-caution-content">
+              <div className="lab-caution-title">Real-Time Lab Calibration</div>
+              <div className="lab-caution-text">
+                Circuit parameters (Vin -10.0V to +10.0V, R1 0.5–50 kΩ, Rf 1–200 kΩ) are strictly calibrated to physical IC 741 / LM358 operational amplifier laboratory trainer kits (dual-rail ±12V supply). Out-of-range inputs will be rejected.
+              </div>
+            </div>
+          </div>
+
           <div style={{ marginBottom: "15px" }}>
-            <div style={{ fontSize: "13px", marginBottom: "5px", fontWeight: "bold", color: "#334155" }}>
+            <div className="sim-param-title" style={{ marginBottom: "6px" }}>
               Configuration
             </div>
             <select 
               value={config}
               onChange={(e) => setConfig(e.target.value)}
-              style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #cbd5e1", cursor: "pointer", background: "white", color: "black", fontSize: "12px" }}
+              className="sim-select"
             >
-              <option value="inverting" style={{ color: "black" }}>Inverting Amplifier</option>
-              <option value="non-inverting" style={{ color: "black" }}>Non-Inverting Amplifier</option>
+              <option value="inverting">Inverting Amplifier</option>
+              <option value="non-inverting">Non-Inverting Amplifier</option>
             </select>
           </div>
 
-          <div style={{ marginBottom: "15px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px", fontSize: "13px" }}>
-              <span>Input Voltage (Vin)</span>
-              <strong>{Number(vin).toFixed(1)} V</strong>
-            </div>
-            <input 
-              type="range" min="-5.0" max="5.0" step="0.1" value={vin}
-              onChange={(e) => setVin(Number(e.target.value))}
-              style={{ width: "100%", cursor: "pointer" }}
-            />
-          </div>
+          {/* Input Voltage */}
+          <ValidatedParameterControl
+            label="Input Voltage (Vin)"
+            limitHint="-10.0 – +10.0 V"
+            value={vin}
+            unit="V"
+            min={-10.0}
+            max={10.0}
+            step={0.05}
+            formatDecimals={2}
+            onChange={(val) => setVin(val)}
+            onValidityChange={(isVal) => setFieldInvalid("vin", isVal)}
+          />
 
-          <div style={{ marginBottom: "15px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px", fontSize: "13px" }}>
-              <span>Input Resistor (R1)</span>
-              <strong>{r1} kΩ</strong>
-            </div>
-            <input 
-              type="range" min="1" max="50" step="1" value={r1}
-              onChange={(e) => setR1(Number(e.target.value))}
-              style={{ width: "100%", cursor: "pointer" }}
-            />
-          </div>
+          {/* Input Resistor R1 */}
+          <ValidatedParameterControl
+            label="Input Resistor (R1)"
+            limitHint="0.5 – 50.0 kΩ"
+            value={r1}
+            unit="kΩ"
+            min={0.5}
+            max={50.0}
+            step={0.5}
+            formatDecimals={1}
+            onChange={(val) => setR1(val)}
+            onValidityChange={(isVal) => setFieldInvalid("r1", isVal)}
+          />
 
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px", fontSize: "13px" }}>
-              <span>Feedback Resistor (Rf)</span>
-              <strong>{rf} kΩ</strong>
+          {/* Feedback Resistor Rf */}
+          <ValidatedParameterControl
+            label="Feedback Resistor (Rf)"
+            limitHint="1.0 – 200.0 kΩ"
+            value={rf}
+            unit="kΩ"
+            min={1.0}
+            max={200.0}
+            step={1.0}
+            formatDecimals={1}
+            onChange={(val) => setRf(val)}
+            onValidityChange={(isVal) => setFieldInvalid("rf", isVal)}
+          />
+
+          {hasInvalid && (
+            <div className="sim-input-error-msg" style={{ marginBottom: "12px", padding: "6px 10px" }}>
+              ⚠️ Cannot run simulation: One or more parameters exceed permissible lab range. Please correct invalid inputs.
             </div>
-            <input 
-              type="range" min="10" max="200" step="10" value={rf}
-              onChange={(e) => setRf(Number(e.target.value))}
-              style={{ width: "100%", cursor: "pointer" }}
-            />
-          </div>
+          )}
 
           {/* Run and Stop Buttons */}
-          <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", marginTop: "14px", marginBottom: "10px" }}>
             <button
               onClick={handleSimulate}
-              disabled={loading}
-              style={{
-                flex: 1, padding: "11px", border: "none", borderRadius: "8px",
-                background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: "bold", 
-                cursor: loading ? "not-allowed" : "pointer", fontSize: "13px"
-              }}
+              disabled={loading || hasInvalid}
+              className="sim-btn-primary"
+              style={{ flex: 1 }}
             >
               {loading ? "Running..." : "⚡ Run"}
             </button>
 
             <button
               onClick={handleStop}
-              style={{
-                flex: 1, padding: "11px", border: "none", borderRadius: "8px",
-                background: "#ef4444", color: "white", fontWeight: "bold", 
-                cursor: "pointer", fontSize: "13px"
-              }}
+              className="sim-btn-danger"
+              style={{ flex: 1 }}
             >
               ⏹ Stop
             </button>
           </div>
 
+          {/* Record Observations Button */}
           <button
             onClick={handleAddObservation}
-            style={{
-              width: "100%", padding: "10px", border: "none", borderRadius: "8px",
-              background: "#0d9488", color: "white", fontWeight: "bold", 
-              cursor: "pointer", fontSize: "13px", marginBottom: "15px"
-            }}
+            className="sim-btn-success"
+            style={{ width: "100%", marginBottom: "10px" }}
           >
             📋 Record to Observations Table
           </button>
 
+          {/* Reset Button */}
+          <button
+            onClick={handleReset}
+            className="sim-btn-reset"
+            style={{ marginBottom: "12px" }}
+            title="Reset parameters to 0 V defaults and clear results"
+          >
+            <span>🔄</span> Reset to Baseline (0 V)
+          </button>
+
           {/* Results Box */}
-          <div style={{ padding: "14px", borderRadius: "8px", background: results ? (results.is_saturated ? "#fef2f2" : "#e0f2fe") : "#f1f5f9", border: `1px solid ${results ? (results.is_saturated ? "#fca5a5" : "#bae6fd") : "#cbd5e1"}` }}>
-            <div style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "8px", color: results ? (results.is_saturated ? "#991b1b" : "#0369a1") : "#475569" }}>
+          <div className="sim-highlight-card" style={{ marginTop: "5px" }}>
+            <div className="sim-highlight-card-title" style={{ marginBottom: "8px" }}>
               {!results ? "💤 Standby Mode (Click Run)" : (results.is_saturated ? "⚠️ Saturation Reached!" : "⚡ Live Circuit Output")}
             </div>
-            <div style={{ fontSize: "13px", color: results ? (results.is_saturated ? "#7f1d1d" : "#0c4a6e") : "#94a3b8", marginBottom: "4px" }}>
-              <strong>Voltage Gain:</strong> {results ? results.voltage_gain.toFixed(2) : "—"}
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">Voltage Gain:</span>
+              <span className="sim-calc-val-accent">{results ? results.voltage_gain.toFixed(2) : "—"}</span>
             </div>
-            <div style={{ fontSize: "13px", color: results ? (results.is_saturated ? "#7f1d1d" : "#0c4a6e") : "#94a3b8" }}>
-              <strong>Output Voltage:</strong> {results ? `${results.output_voltage.toFixed(2)} V` : "—"}
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">Output Voltage:</span>
+              <span className="sim-calc-val-accent">{results ? `${results.output_voltage.toFixed(2)} V` : "—"}</span>
             </div>
           </div>
         </div>

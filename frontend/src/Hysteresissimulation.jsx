@@ -1,6 +1,6 @@
-//export default function HysteresisSimulation({ onSaveData }) {
 import { useEffect, useRef, useState } from "react";
 import Hysteresis3D from "./Hysteresis3D";
+import ValidatedParameterControl from "./ValidatedParameterControl";
 import { ENDPOINTS } from "./apiConfig";
 
 /*
@@ -97,6 +97,9 @@ export default function HysteresisSimulation({ onSaveData }) {
   const [turns, setTurns] = useState(200);
   const [coreArea, setCoreArea] = useState(4);
   const [magneticPath, setMagneticPath] = useState(0.25);
+  const [invalidInputs, setInvalidInputs] = useState({});
+  const hasInvalid = Object.values(invalidInputs).some(Boolean);
+  const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
 
   const coreAreaM2 = coreArea * 0.0001;
 
@@ -119,14 +122,13 @@ export default function HysteresisSimulation({ onSaveData }) {
   const lastTimeRef = useRef(null);
   const elapsedRef = useRef(0);
 
-  // Maximum field calculations
+  // Maximum field calculations with safety guards for zero values
   const maximumCurrent = voltage / 100;
-  const maximumField = (turns * maximumCurrent) / magneticPath;
+  const maximumField = magneticPath > 0 ? (turns * maximumCurrent) / magneticPath : 0;
 
-  let maximumFluxDensity =
-    (voltage / (2 * Math.PI * frequency * turns * coreAreaM2)) *
-    material.saturationFactor;
-  maximumFluxDensity = Math.min(maximumFluxDensity, 2.2);
+  const safeDivisor = 2 * Math.PI * Math.max(frequency, 0.1) * Math.max(turns, 1) * Math.max(coreAreaM2, 1e-7);
+  let maximumFluxDensity = voltage > 0 ? (voltage / safeDivisor) * material.saturationFactor : 0;
+  maximumFluxDensity = Math.min(maximumFluxDensity || 0, 2.2);
 
   /*
   -------------------------------------------------------
@@ -186,10 +188,10 @@ export default function HysteresisSimulation({ onSaveData }) {
       const phase = omega * t;
 
       const baseCurrent = maximumCurrent * Math.sin(phase);
-      const H = (turns * baseCurrent) / magneticPath;
-      const dH_dt = (turns * maximumCurrent * omega * Math.cos(phase)) / magneticPath;
+      const H = magneticPath > 0 ? (turns * baseCurrent) / magneticPath : 0;
+      const dH_dt = magneticPath > 0 ? (turns * maximumCurrent * omega * Math.cos(phase)) / magneticPath : 0;
 
-      const B = computeFluxDensity(H, dH_dt);
+      const B = maximumField > 0 ? computeFluxDensity(H, dH_dt) : 0;
       const phi = B * coreAreaM2;
 
       // Steinmetz loss calculation
@@ -279,6 +281,17 @@ export default function HysteresisSimulation({ onSaveData }) {
     setLoopPoints([]);
   };
 
+  const handleFullReset = () => {
+    resetExperiment();
+    setVoltage(0);
+    setFrequency(50);
+    setTurns(200);
+    setCoreArea(4);
+    setMagneticPath(0.25);
+    setBackendResults(null);
+    setBackendStatus("");
+  };
+
   const changeParameter = (setter, value) => {
     setter(value);
     resetExperiment();
@@ -337,15 +350,18 @@ export default function HysteresisSimulation({ onSaveData }) {
         }}
       >
         {/* CONTROLS PANEL */}
-        <div
-          style={{
-            padding: "18px",
-            border: "1px solid #1e3a5f",
-            borderRadius: "12px",
-            background: "#08101d",
-            color: "#ffffff"
-          }}
-        >
+        <div className="sim-control-panel">
+          {/* LABORATORY REAL-TIME CALIBRATION CAUTION */}
+          <div className="lab-caution-banner">
+            <span className="lab-caution-icon">⚠️</span>
+            <div className="lab-caution-content">
+              <div className="lab-caution-title">Real-Time Lab Calibration</div>
+              <div className="lab-caution-text">
+                Input ranges (0–30V AC, 10–200Hz, 20–1000 turns, 0.5–15.0 cm², 0.05–0.60 m) are strictly calibrated to physical transformer testing benches and standard magnetic specimen rings. Out-of-range inputs will be rejected.
+              </div>
+            </div>
+          </div>
+
           {/* MATERIAL SELECTION */}
           <div style={{ marginBottom: "18px" }}>
             <label style={{ fontSize: "13px", fontWeight: "700", color: "#38bdf8", display: "block", marginBottom: "6px" }}>
@@ -354,18 +370,8 @@ export default function HysteresisSimulation({ onSaveData }) {
             <select
               value={selectedMaterialKey}
               onChange={(e) => changeParameter(setSelectedMaterialKey, e.target.value)}
-              style={{
-                width: "100%",
-                padding: "9px 12px",
-                background: "#0f1f38",
-                border: `2px solid ${material.color}`,
-                borderRadius: "8px",
-                color: "#ffffff",
-                fontWeight: "600",
-                fontSize: "13px",
-                outline: "none",
-                cursor: "pointer"
-              }}
+              className="sim-select"
+              style={{ border: `2px solid ${material.color}` }}
             >
               <optgroup label="🟢 Soft Ferromagnetic (Sigmoid S-Curve)">
                 <option value="iron">Soft Iron (Fe) — Low Loss</option>
@@ -394,97 +400,106 @@ export default function HysteresisSimulation({ onSaveData }) {
             </div>
           </div>
 
-          <h3 style={{ marginTop: 0, fontSize: "15px", borderBottom: "1px solid #1e293b", paddingBottom: "6px" }}>
+          <h3 className="sim-panel-title" style={{ marginTop: "16px", borderBottom: "1px solid rgba(148, 163, 184, 0.2)", paddingBottom: "6px" }}>
             Experimental Parameters
           </h3>
 
-          <Parameter label="Excitation Voltage" value={`${voltage} V`} />
-          <input
-            type="range"
-            min="1"
-            max="20"
-            step="1"
+          <ValidatedParameterControl
+            label="Excitation Voltage"
+            limitHint="0 – 30 V (AC Source)"
             value={voltage}
-            onChange={(e) => changeParameter(setVoltage, Number(e.target.value))}
-            style={{ width: "100%", accentColor: material.color }}
+            min={0}
+            max={30}
+            step={0.1}
+            unit="V"
+            onChange={(val) => changeParameter(setVoltage, val)}
+            onValidityChange={(isVal) => setFieldInvalid("voltage", isVal)}
+            accentColor={material.color}
           />
 
-          <Parameter label="Frequency" value={`${frequency} Hz`} />
-          <input
-            type="range"
-            min="10"
-            max="100"
-            step="5"
+          <ValidatedParameterControl
+            label="Frequency"
+            limitHint="10 – 200 Hz"
             value={frequency}
-            onChange={(e) => changeParameter(setFrequency, Number(e.target.value))}
-            style={{ width: "100%", accentColor: material.color }}
+            min={10}
+            max={200}
+            step={1}
+            unit="Hz"
+            onChange={(val) => changeParameter(setFrequency, val)}
+            onValidityChange={(isVal) => setFieldInvalid("frequency", isVal)}
+            accentColor={material.color}
           />
 
-          <Parameter label="Coil Turns" value={`${turns}`} />
-          <input
-            type="range"
-            min="50"
-            max="500"
-            step="10"
+          <ValidatedParameterControl
+            label="Coil Turns"
+            limitHint="20 – 1000 turns"
             value={turns}
-            onChange={(e) => changeParameter(setTurns, Number(e.target.value))}
-            style={{ width: "100%", accentColor: material.color }}
+            min={20}
+            max={1000}
+            step={10}
+            unit="turns"
+            onChange={(val) => changeParameter(setTurns, val)}
+            onValidityChange={(isVal) => setFieldInvalid("turns", isVal)}
+            accentColor={material.color}
           />
 
-          <Parameter label="Core Area" value={`${coreArea} cm²`} />
-          <input
-            type="range"
-            min="1"
-            max="10"
-            step="0.5"
+          <ValidatedParameterControl
+            label="Core Area"
+            limitHint="0.5 – 15.0 cm²"
             value={coreArea}
-            onChange={(e) => changeParameter(setCoreArea, Number(e.target.value))}
-            style={{ width: "100%", accentColor: material.color }}
+            min={0.5}
+            max={15}
+            step={0.1}
+            unit="cm²"
+            onChange={(val) => changeParameter(setCoreArea, val)}
+            onValidityChange={(isVal) => setFieldInvalid("coreArea", isVal)}
+            accentColor={material.color}
           />
 
-          <Parameter label="Magnetic Path Length" value={`${magneticPath.toFixed(2)} m`} />
-          <input
-            type="range"
-            min="0.1"
-            max="0.6"
-            step="0.01"
+          <ValidatedParameterControl
+            label="Magnetic Path Length"
+            limitHint="0.05 – 0.60 m"
             value={magneticPath}
-            onChange={(e) => changeParameter(setMagneticPath, Number(e.target.value))}
-            style={{ width: "100%", accentColor: material.color }}
+            min={0.05}
+            max={0.6}
+            step={0.01}
+            unit="m"
+            onChange={(val) => changeParameter(setMagneticPath, val)}
+            onValidityChange={(isVal) => setFieldInvalid("magneticPath", isVal)}
+            accentColor={material.color}
           />
 
           {/* CALCULATED VALUES */}
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "10px",
-              borderRadius: "8px",
-              background: "#030811",
-              border: "1px solid #1e293b",
-              fontSize: "12px",
-              lineHeight: 1.7,
-            }}
-          >
-            <div>B<sub>max</sub>: <b style={{ color: "#38bdf8" }}>{maximumFluxDensity.toFixed(3)} T</b></div>
-            <div>H<sub>max</sub>: <b style={{ color: "#38bdf8" }}>{maximumField.toFixed(1)} A/m</b></div>
-            <div>Loop Shape: <b style={{ color: material.color }}>{material.type === "sigmoid" ? "Sigmoid S-Curve" : "Rhombus Wide-Loop"}</b></div>
+          <div className="sim-highlight-card" style={{ marginTop: "16px" }}>
+            <div className="sim-highlight-card-title" style={{ marginBottom: "8px" }}>Calculated Magnetic Metrics</div>
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">B<sub>max</sub>:</span>
+              <b className="sim-calc-val-accent">{maximumFluxDensity.toFixed(3)} T</b>
+            </div>
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">H<sub>max</sub>:</span>
+              <b className="sim-calc-val-accent">{maximumField.toFixed(1)} A/m</b>
+            </div>
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">Loop Shape:</span>
+              <b className="sim-calc-val-tag" style={{ color: material.color }}>
+                {material.type === "sigmoid" ? "Sigmoid S-Curve" : "Rhombus Wide-Loop"}
+              </b>
+            </div>
           </div>
+
+          {hasInvalid && (
+            <div className="sim-input-error-msg" style={{ marginTop: "12px", padding: "6px 10px" }}>
+              ⚠️ Cannot start experiment: One or more parameters exceed permissible lab range. Please correct invalid inputs.
+            </div>
+          )}
 
           {/* BUTTONS */}
           <button
             onClick={startExperiment}
-            disabled={running}
-            style={{
-              width: "100%",
-              padding: "11px",
-              marginTop: "14px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#1565c0",
-              color: "white",
-              fontWeight: "700",
-              cursor: running ? "not-allowed" : "pointer",
-            }}
+            disabled={running || hasInvalid}
+            className="sim-btn-primary"
+            style={{ marginTop: "14px" }}
           >
             ▶ Start Experiment
           </button>
@@ -492,69 +507,20 @@ export default function HysteresisSimulation({ onSaveData }) {
           <button
             onClick={stopExperiment}
             disabled={!running}
-            style={{
-              width: "100%",
-              padding: "11px",
-              marginTop: "8px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#475569",
-              color: "white",
-              fontWeight: "700",
-              cursor: !running ? "not-allowed" : "pointer",
-            }}
+            className="sim-btn-slate"
+            style={{ marginTop: "10px" }}
           >
             ⏹ Stop & Record
           </button>
 
           <button
-            onClick={resetExperiment}
-            style={{
-              width: "100%",
-              padding: "11px",
-              marginTop: "8px",
-              border: "1px solid #475569",
-              borderRadius: "8px",
-              background: "#0f172a",
-              color: "#cbd5e1",
-              fontWeight: "600",
-              cursor: "pointer",
-            }}
+            onClick={handleFullReset}
+            className="sim-btn-reset"
+            title="Reset parameters to 0 V defaults and clear graphs"
+            style={{ marginTop: "10px" }}
           >
-            🔄 Reset
+            <span>🔄</span> Reset to Baseline (0 V)
           </button>
-
-          <button
-            onClick={runBackendSimulation}
-            style={{
-              width: "100%",
-              padding: "11px",
-              marginTop: "8px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#7c3aed",
-              color: "white",
-              fontWeight: "700",
-              cursor: "pointer",
-            }}
-          >
-            🧲 Run Backend B–H Simulation
-          </button>
-
-          {backendStatus && (
-            <div
-              style={{
-                marginTop: "10px",
-                padding: "8px",
-                borderRadius: "6px",
-                background: "#0f1f38",
-                color: "#60a5fa",
-                fontSize: "11px",
-              }}
-            >
-              {backendStatus}
-            </div>
-          )}
         </div>
 
         {/* 3D LABORATORY VIEW */}
@@ -630,36 +596,76 @@ export default function HysteresisSimulation({ onSaveData }) {
           </div>
         </div>
 
-        <HysteresisGraph points={loopPoints} material={material} />
+        <HysteresisGraph 
+          points={loopPoints} 
+          material={material} 
+          expectedMaxH={maximumField} 
+          expectedMaxB={maximumFluxDensity}
+          isLive={running}
+        />
       </div>
     </div>
   );
 }
 
-function Parameter({ label, value }) {
+function ParameterInput({ label, limitHint, value, min, max, step, unit, onChange, accentColor }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "12px", color: "#cbd5e1" }}>
-      <span>{label}</span>
-      <strong style={{ color: "#ffffff" }}>{value}</strong>
+    <div className="sim-param-box">
+      <div className="sim-param-header">
+        <div className="sim-param-title">
+          <span>{label}</span>
+          {limitHint && <span className="sim-param-limit">Range: {limitHint}</span>}
+        </div>
+        <div className="sim-param-input-wrap">
+          <input
+            type="number"
+            className="sim-num-input"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                onChange(0);
+                return;
+              }
+              const parsed = parseFloat(raw);
+              onChange(isNaN(parsed) ? 0 : parsed);
+            }}
+          />
+          <span className="sim-param-unit">{unit}</span>
+        </div>
+      </div>
+      <input
+        type="range"
+        className="sim-param-slider"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={accentColor ? { accentColor } : {}}
+      />
     </div>
   );
 }
 
 function ResultCard({ title, value }) {
   return (
-    <div style={{ padding: "14px", border: "1px solid #1e3a5f", borderRadius: "10px", background: "#08101d" }}>
-      <div style={{ color: "#38bdf8", fontSize: "12px", marginBottom: "6px" }}>{title}</div>
-      <strong style={{ fontSize: "18px", color: "#ffffff" }}>{value}</strong>
+    <div className="sim-metric-card">
+      <div className="sim-metric-title">{title}</div>
+      <strong className="sim-metric-val">{value}</strong>
     </div>
   );
 }
 
 /*
 =========================================================
-HYSTERESIS GRAPH COMPONENT
+HYSTERESIS GRAPH COMPONENT - Stable Physical Laboratory Grid
 =========================================================
 */
-function HysteresisGraph({ points, material }) {
+function HysteresisGraph({ points, material, expectedMaxH, expectedMaxB, isLive }) {
   const width = 900;
   const height = 430;
   const paddingLeft = 75;
@@ -667,16 +673,23 @@ function HysteresisGraph({ points, material }) {
   const paddingTop = 30;
   const paddingBottom = 55;
 
-  let maxH = 100;
-  let maxB = 1;
+  const cleanPoints = (points || []).filter(
+    (p) => p && typeof p.h === "number" && !isNaN(p.h) && typeof p.b === "number" && !isNaN(p.b)
+  );
 
-  if (points.length > 0) {
-    maxH = Math.max(...points.map((p) => Math.abs(p.h))) || 100;
-    maxB = Math.max(...points.map((p) => Math.abs(p.b))) || 1;
+  // Compute stable axis limits based on expected maximums to eliminate axis jumping
+  let computedMaxH = expectedMaxH && expectedMaxH > 0 ? expectedMaxH : 100;
+  let computedMaxB = expectedMaxB && expectedMaxB > 0 ? expectedMaxB : 1.0;
+
+  if (cleanPoints.length > 0) {
+    const pointMaxH = Math.max(...cleanPoints.map((p) => Math.abs(p.h)));
+    const pointMaxB = Math.max(...cleanPoints.map((p) => Math.abs(p.b)));
+    if (pointMaxH > computedMaxH) computedMaxH = pointMaxH;
+    if (pointMaxB > computedMaxB) computedMaxB = pointMaxB;
   }
 
-  maxH *= 1.15;
-  maxB *= 1.15;
+  const maxH = Math.max(computedMaxH * 1.15, 10);
+  const maxB = Math.max(computedMaxB * 1.15, 0.2);
 
   const graphWidth = width - paddingLeft - paddingRight;
   const graphHeight = height - paddingTop - paddingBottom;
@@ -686,11 +699,13 @@ function HysteresisGraph({ points, material }) {
 
   // Build SVG Path
   let path = "";
-  points.forEach((point, index) => {
+  cleanPoints.forEach((point, index) => {
     const x = xToPixel(point.h);
     const y = yToPixel(point.b);
     path += index === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
   });
+
+  const lastPoint = cleanPoints.length > 0 ? cleanPoints[cleanPoints.length - 1] : null;
 
   const gridElements = [];
   const coordinateLabels = [];
@@ -752,6 +767,18 @@ function HysteresisGraph({ points, material }) {
 
   return (
     <div style={{ width: "100%", overflowX: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+        <div style={{ fontSize: "12px", color: "#64748b" }}>
+          <span>Domain: [−{maxH.toFixed(1)}, +{maxH.toFixed(1)}] A/m</span>
+          <span style={{ marginLeft: "14px" }}>Range: [−{maxB.toFixed(2)}, +{maxB.toFixed(2)}] T</span>
+        </div>
+        {lastPoint && (
+          <div style={{ fontSize: "12px", fontFamily: "monospace", color: "#0f172a", background: "#f1f5f9", padding: "2px 8px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+            Current: H = {lastPoint.h.toFixed(1)} A/m | B = {lastPoint.b.toFixed(3)} T
+          </div>
+        )}
+      </div>
+
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: "650px", display: "block" }}>
         <rect x="0" y="0" width={width} height={height} fill="#f8fafc" rx="10" />
 
@@ -766,7 +793,7 @@ function HysteresisGraph({ points, material }) {
         {coordinateLabels}
 
         {/* Hysteresis Trace with Material Accent Color */}
-        {points.length > 1 && (
+        {cleanPoints.length > 1 && (
           <path
             d={path}
             fill={material.type === "rhombus" ? "rgba(220, 38, 38, 0.08)" : "rgba(37, 99, 235, 0.08)"}
@@ -777,14 +804,29 @@ function HysteresisGraph({ points, material }) {
           />
         )}
 
-        {/* Active Point */}
-        {points.length > 0 && (
-          <circle
-            cx={xToPixel(points[points.length - 1].h)}
-            cy={yToPixel(points[points.length - 1].b)}
-            r="6"
-            fill="#ef4444"
-          />
+        {/* Active Point with Pulsing Ring when Live */}
+        {lastPoint && (
+          <g>
+            <circle
+              cx={xToPixel(lastPoint.h)}
+              cy={yToPixel(lastPoint.b)}
+              r="6"
+              fill="#ef4444"
+              stroke="#ffffff"
+              strokeWidth="2"
+            />
+            {isLive && (
+              <circle
+                cx={xToPixel(lastPoint.h)}
+                cy={yToPixel(lastPoint.b)}
+                r="11"
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="1.5"
+                opacity="0.6"
+              />
+            )}
+          </g>
         )}
 
         {/* Axis Titles */}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import RC3D from "./RC3D";
+import ValidatedParameterControl from "./ValidatedParameterControl";
 
 /*
  * ============================================================
@@ -55,14 +56,11 @@ export default function RCSimulation({ onSaveData }) {
   const dischargeInitialVoltageRef = useRef(0);
   const lastGraphUpdateRef = useRef(0);
 
-  /*
-   * ==========================================================
-   * TIME CONSTANT (τ = RC)
-   * ==========================================================
-   */
-  const tau = (resistance * capacitance) / 1000000;
+  const safeR = Math.max(resistance || 0, 1);
+  const safeC = Math.max(capacitance || 0, 1);
+  const tau = (safeR * safeC) / 1000000;
   const fiveTau = tau * 5;
-  const initialChargingCurrent = voltage / resistance;
+  const initialChargingCurrent = voltage / safeR;
 
   /*
    * ==========================================================
@@ -114,7 +112,7 @@ export default function RCSimulation({ onSaveData }) {
       // Charging
       if (mode === "charge") {
         vc = voltage * (1 - Math.exp(-t / tau));
-        i = (voltage / resistance) * Math.exp(-t / tau);
+        i = (voltage / safeR) * Math.exp(-t / tau);
         vc = Math.min(vc, voltage);
 
         if (t >= tau * 5) {
@@ -135,7 +133,7 @@ export default function RCSimulation({ onSaveData }) {
       if (mode === "discharge") {
         const initialVoltage = dischargeInitialVoltageRef.current;
         vc = initialVoltage * Math.exp(-t / tau);
-        i = -(initialVoltage / resistance) * Math.exp(-t / tau);
+        i = -(initialVoltage / safeR) * Math.exp(-t / tau);
         vc = Math.max(vc, 0);
 
         if (t >= tau * 5) {
@@ -189,9 +187,9 @@ export default function RCSimulation({ onSaveData }) {
     lastTimeRef.current = null;
     lastGraphUpdateRef.current = 0;
     setCapacitorVoltage(0);
-    setCurrent(voltage / resistance);
+    setCurrent(voltage / safeR);
     setGraphData([
-      { time: 0, voltage: 0, current: voltage / resistance },
+      { time: 0, voltage: 0, current: voltage / safeR },
     ]);
     requestAnimationFrame(() => setRunning(true));
   };
@@ -209,9 +207,9 @@ export default function RCSimulation({ onSaveData }) {
     elapsedRef.current = 0;
     lastTimeRef.current = null;
     lastGraphUpdateRef.current = 0;
-    setCurrent(-initialVoltage / resistance);
+    setCurrent(-initialVoltage / safeR);
     setGraphData([
-      { time: 0, voltage: initialVoltage, current: -initialVoltage / resistance },
+      { time: 0, voltage: initialVoltage, current: -initialVoltage / safeR },
     ]);
     requestAnimationFrame(() => setRunning(true));
   };
@@ -233,20 +231,31 @@ export default function RCSimulation({ onSaveData }) {
     setGraphData([]);
   };
 
+  const handleFullReset = () => {
+    resetSimulation();
+    setVoltage(0);
+    setResistance(1000);
+    setCapacitance(1000);
+  };
+
   const changeVoltage = (value) => {
     setVoltage(value);
-    resetSimulation();
+    if (running) stopSimulation();
   };
 
   const changeResistance = (value) => {
     setResistance(value);
-    resetSimulation();
+    if (running) stopSimulation();
   };
 
   const changeCapacitance = (value) => {
     setCapacitance(value);
-    resetSimulation();
+    if (running) stopSimulation();
   };
+
+  const [invalidInputs, setInvalidInputs] = useState({});
+  const hasInvalid = Object.values(invalidInputs).some(Boolean);
+  const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
 
   return (
     <div
@@ -277,88 +286,90 @@ export default function RCSimulation({ onSaveData }) {
         }}
       >
         {/* CONTROL PANEL */}
-        <div
-          style={{
-            padding: "20px",
-            border: "1px solid #1e3a5f",
-            borderRadius: "12px",
-            background: "#08101d",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "17px",
-              fontWeight: "bold",
-              marginBottom: "18px",
-              color: "#38bdf8",
-            }}
-          >
+        <div className="sim-control-panel">
+          {/* LABORATORY REAL-TIME CALIBRATION CAUTION */}
+          <div className="lab-caution-banner">
+            <span className="lab-caution-icon">⚠️</span>
+            <div className="lab-caution-content">
+              <div className="lab-caution-title">Real-Time Lab Calibration</div>
+              <div className="lab-caution-text">
+                All input ranges (0–30V DC, 50–50,000Ω, 1–5000μF) are strictly calibrated to real physical laboratory bench supplies and standard decade components. Values outside this range will be rejected.
+              </div>
+            </div>
+          </div>
+
+          <div className="sim-panel-title">
             Experimental Parameters
           </div>
 
-          <ParameterControl
+          <ValidatedParameterControl
             label="Supply Voltage"
+            limitHint="0 – 30 V (Dual Bench Supply)"
             value={voltage}
             unit="V"
-            min={1}
-            max={20}
-            step={1}
+            min={0}
+            max={30}
+            step={0.1}
             onChange={changeVoltage}
+            onValidityChange={(isVal) => setFieldInvalid("voltage", isVal)}
           />
 
-          <ParameterControl
+          <ValidatedParameterControl
             label="Resistance"
+            limitHint="50 – 50,000 Ω (Decade Box)"
             value={resistance}
             unit="Ω"
-            min={100}
-            max={10000}
-            step={100}
+            min={50}
+            max={50000}
+            step={50}
             onChange={changeResistance}
+            onValidityChange={(isVal) => setFieldInvalid("resistance", isVal)}
           />
 
-          <ParameterControl
+          <ValidatedParameterControl
             label="Capacitance"
+            limitHint="1 – 5000 μF (Capacitor Range)"
             value={capacitance}
             unit="μF"
-            min={100}
+            min={1}
             max={5000}
-            step={100}
+            step={10}
             onChange={changeCapacitance}
+            onValidityChange={(isVal) => setFieldInvalid("capacitance", isVal)}
           />
 
           {/* TIME CONSTANT CARD */}
-          <div
-            style={{
-              marginTop: "18px",
-              padding: "14px",
-              borderRadius: "9px",
-              background: "#030811",
-              border: "1px solid #1e293b",
-            }}
-          >
-            <div style={{ fontSize: "12px", color: "#64748b" }}>TIME CONSTANT</div>
-            <div style={{ fontSize: "22px", fontWeight: "bold", marginTop: "3px", color: "#38bdf8" }}>
+          <div className="sim-highlight-card">
+            <div className="sim-highlight-card-title">Time Constant</div>
+            <div className="sim-highlight-card-val">
               τ = {tau.toFixed(3)} s
             </div>
-            <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: "5px" }}>
+            <div className="sim-highlight-card-sub">
               5τ = {fiveTau.toFixed(3)} s
             </div>
           </div>
 
+          {hasInvalid && (
+            <div className="sim-input-error-msg" style={{ marginTop: "12px", padding: "6px 10px" }}>
+              ⚠️ Cannot simulate: One or more parameters exceed the permissible lab range. Please correct invalid inputs.
+            </div>
+          )}
+
           {/* ACTION BUTTONS */}
           <button
             onClick={startCharging}
-            disabled={running}
-            style={buttonStyle("#1976d2", running)}
+            disabled={running || hasInvalid}
+            className="sim-btn-primary"
+            style={{ marginTop: "14px" }}
           >
             🔋 Charge Capacitor
           </button>
 
           <button
             onClick={startDischarging}
-            disabled={running}
-            style={buttonStyle("#d64545", running)}
+            disabled={running || hasInvalid}
+            className="sim-btn-danger"
+            style={{ marginTop: "10px" }}
           >
             ⚡ Discharge Capacitor
           </button>
@@ -366,43 +377,27 @@ export default function RCSimulation({ onSaveData }) {
           <button
             onClick={stopSimulation}
             disabled={!running}
-            style={buttonStyle("#475569", !running)}
+            className="sim-btn-slate"
+            style={{ marginTop: "10px" }}
           >
             ⏹ Stop Simulation
           </button>
 
           <button
-            onClick={resetSimulation}
-            style={{
-              width: "100%",
-              padding: "11px",
-              borderRadius: "8px",
-              border: "1px solid #475569",
-              background: "#0f172a",
-              color: "#cbd5e1",
-              cursor: "pointer",
-              fontWeight: "bold",
-              marginTop: "10px",
-            }}
+            onClick={recordRCObservation}
+            className="sim-btn-success"
+            style={{ marginTop: "10px" }}
           >
-            🔄 Reset Experiment
+            📥 Record to Observation Table
           </button>
 
           <button
-            onClick={recordRCObservation}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "10px",
-              border: "none",
-              borderRadius: "8px",
-              background: "#059669",
-              color: "white",
-              fontWeight: "600",
-              cursor: "pointer",
-            }}
+            onClick={handleFullReset}
+            className="sim-btn-reset"
+            title="Reset parameters to 0 V defaults and clear simulation"
+            style={{ marginTop: "10px" }}
           >
-            📥 Record to Observation Table
+            <span>🔄</span> Reset to Baseline (0 V)
           </button>
         </div>
 
@@ -430,14 +425,7 @@ export default function RCSimulation({ onSaveData }) {
       </div>
 
       {/* LIVE RESULTS METRICS */}
-      <div
-        style={{
-          marginTop: "20px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: "12px",
-        }}
-      >
+      <div className="sim-metrics-grid">
         <ResultCard title="Time Constant" value={`${tau.toFixed(3)} s`} />
         <ResultCard title="Supply Voltage" value={`${voltage.toFixed(1)} V`} />
         <ResultCard title="Capacitor Voltage" value={`${capacitorVoltage.toFixed(2)} V`} />
@@ -446,21 +434,12 @@ export default function RCSimulation({ onSaveData }) {
       </div>
 
       {/* GRAPH SECTION */}
-      <div
-        style={{
-          marginTop: "25px",
-          padding: "20px",
-          border: "1px solid #1e3a5f",
-          borderRadius: "12px",
-          background: "#ffffff",
-          color: "#0f172a",
-        }}
-      >
+      <div className="sim-graph-card">
         <div style={{ marginBottom: "18px" }}>
-          <h3 style={{ margin: 0, fontSize: "20px", color: "#0f172a" }}>
+          <h3 className="sim-graph-title">
             Experimental Graphs
           </h3>
-          <p style={{ marginTop: "5px", color: "#64748b", fontSize: "13px" }}>
+          <p className="sim-graph-subtitle">
             Live transient response plots of the RC circuit.
           </p>
         </div>
@@ -487,7 +466,10 @@ export default function RCSimulation({ onSaveData }) {
             data={graphData}
             dataKey="current"
             colorType="current"
-            maxY={Math.max(initialChargingCurrent * 1000, Math.abs(current) * 1000, 0.001)}
+            maxY={Math.max(
+              ((mode === "discharge" ? (dischargeInitialVoltageRef.current || voltage) : voltage) / safeR) * 1000,
+              1.0
+            )}
             tau={tau}
             finalValue={0}
             currentMode={mode}
@@ -535,31 +517,43 @@ export default function RCSimulation({ onSaveData }) {
  * PARAMETER CONTROL
  * ============================================================
  */
-function ParameterControl({ label, value, unit, min, max, step, onChange }) {
+function ParameterControl({ label, limitHint, value, unit, min, max, step, onChange }) {
   return (
-    <div style={{ marginBottom: "16px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "6px",
-          fontSize: "13px",
-          color: "#cbd5e1",
-        }}
-      >
-        <span>{label}</span>
-        <strong style={{ color: "#ffffff" }}>
-          {value} {unit}
-        </strong>
+    <div className="sim-param-box">
+      <div className="sim-param-header">
+        <div className="sim-param-title">
+          <span>{label}</span>
+          {limitHint && <span className="sim-param-limit">Range: {limitHint}</span>}
+        </div>
+        <div className="sim-param-input-wrap">
+          <input
+            type="number"
+            className="sim-num-input"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => {
+              const raw = e.target.value;
+              if (raw === "") {
+                onChange(0);
+                return;
+              }
+              const parsed = parseFloat(raw);
+              onChange(isNaN(parsed) ? 0 : parsed);
+            }}
+          />
+          <span className="sim-param-unit">{unit}</span>
+        </div>
       </div>
       <input
         type="range"
+        className="sim-param-slider"
         min={min}
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "#38bdf8", cursor: "pointer" }}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
       />
     </div>
   );
@@ -590,27 +584,20 @@ function buttonStyle(background, disabled) {
  * RESULT CARD
  * ============================================================
  */
-function ResultCard({ title, value }) {
+function ResultCard({ title, value, unit }) {
   return (
-    <div
-      style={{
-        padding: "15px",
-        border: "1px solid #1e3a5f",
-        borderRadius: "10px",
-        background: "#08101d",
-      }}
-    >
-      <div style={{ fontSize: "12px", color: "#38bdf8", marginBottom: "6px" }}>
-        {title}
+    <div className="sim-metric-card">
+      <div className="sim-metric-title">{title}</div>
+      <div className="sim-metric-val">
+        {value} {unit && <span className="sim-metric-unit">{unit}</span>}
       </div>
-      <strong style={{ fontSize: "20px", color: "#ffffff" }}>{value}</strong>
     </div>
   );
 }
 
 /*
  * ============================================================
- * RC GRAPH (SVG)
+ * RC GRAPH (SVG) - Robust Laboratory Scale & Accurate Trace
  * ============================================================
  */
 function RCGraph({
@@ -636,13 +623,13 @@ function RCGraph({
   const plotHeight = height - paddingTop - paddingBottom;
 
   const maxTime =
-    data.length > 0
-      ? Math.max(tau * 5, data[data.length - 1].time, 0.001)
+    data && data.length > 0
+      ? Math.max(tau * 5, data[data.length - 1].time, 1)
       : Math.max(tau * 5, 1);
 
-  const yMax = Math.max(maxY || 1, 0.001);
+  const yMax = Math.max(maxY > 0 ? maxY : (colorType === "voltage" ? 10 : 1), 0.001);
 
-  const getX = (time) => paddingLeft + (time / maxTime) * plotWidth;
+  const getX = (time) => paddingLeft + (Math.max(0, time) / maxTime) * plotWidth;
 
   const getY = (value) => {
     if (colorType === "current") {
@@ -655,12 +642,21 @@ function RCGraph({
     return paddingTop + plotHeight - (value / yMax) * plotHeight;
   };
 
-  const points = data
+  // Filter valid data points strictly to avoid any NaN or gap crashes
+  const validData = (data || []).filter(
+    (item) => item && typeof item.time === "number" && !isNaN(item.time) &&
+      (dataKey === "current" ? !isNaN(item.current) : !isNaN(item.voltage))
+  );
+
+  const points = validData
     .map((item) => {
       const value = dataKey === "current" ? item.current * 1000 : item.voltage;
       return `${getX(item.time)},${getY(value)}`;
     })
     .join(" ");
+
+  const lastPoint = validData.length > 0 ? validData[validData.length - 1] : null;
+  const lastVal = lastPoint ? (dataKey === "current" ? lastPoint.current * 1000 : lastPoint.voltage) : 0;
 
   const yLabels =
     colorType === "current"
@@ -671,8 +667,15 @@ function RCGraph({
 
   return (
     <div style={{ width: "100%" }}>
-      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#0f172a" }}>
-        {title}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+        <span style={{ fontWeight: "bold", fontSize: "16px", color: "#0f172a" }}>
+          {title}
+        </span>
+        {lastPoint && (
+          <span style={{ fontSize: "12px", fontFamily: "monospace", background: "#f1f5f9", padding: "3px 8px", borderRadius: "4px", color: "#0f172a", border: "1px solid #cbd5e1" }}>
+            Live: t = {lastPoint.time.toFixed(2)}s | {dataKey === "current" ? "I" : "V"} = {lastVal.toFixed(2)} {dataKey === "current" ? "mA" : "V"}
+          </span>
+        )}
       </div>
 
       <div
@@ -772,8 +775,8 @@ function RCGraph({
                 strokeWidth="1.5"
                 strokeDasharray="5 5"
               />
-              <text x={getX(tau) + 5} y={paddingTop + 15} fontSize="11" fill="#64748b">
-                τ
+              <text x={getX(tau) + 5} y={paddingTop + 15} fontSize="11" fill="#64748b" fontWeight="bold">
+                τ ({tau.toFixed(2)}s)
               </text>
             </g>
           )}
@@ -792,7 +795,7 @@ function RCGraph({
           )}
 
           {/* TRACE CURVE */}
-          {data.length > 1 && (
+          {validData.length > 1 && (
             <polyline
               points={points}
               fill="none"
@@ -800,6 +803,18 @@ function RCGraph({
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
+            />
+          )}
+
+          {/* ACTIVE POINT WITH COORDINATES */}
+          {lastPoint && (
+            <circle
+              cx={getX(lastPoint.time)}
+              cy={getY(lastVal)}
+              r="4.5"
+              fill={colorType === "voltage" ? "#1976d2" : "#16a34a"}
+              stroke="#ffffff"
+              strokeWidth="1.5"
             />
           )}
 

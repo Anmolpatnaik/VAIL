@@ -86,36 +86,82 @@ const DynamicsCart = React.forwardRef(({ color, mass, isLeft, restitution }, ref
   );
 });
 
+// 3. Track End Bumper with Rubber Shock Absorber
+const TrackBumper = ({ position, isLeft }) => (
+  <group position={position}>
+    {/* Metal Bracket */}
+    <mesh position={[0, 0.35, 0]} castShadow>
+      <boxGeometry args={[0.3, 0.6, 1.18]} />
+      <meshStandardMaterial color="#475569" metalness={0.8} roughness={0.2} />
+    </mesh>
+    {/* High-density Rubber Stopper */}
+    <mesh position={[(isLeft ? 0.2 : -0.2), 0.35, 0]}>
+      <boxGeometry args={[0.15, 0.45, 0.9]} />
+      <meshStandardMaterial color="#0f172a" roughness={0.9} />
+    </mesh>
+    {/* Safety Warning Yellow Stripes */}
+    <mesh position={[0, 0.66, 0]}>
+      <boxGeometry args={[0.3, 0.04, 1.18]} />
+      <meshBasicMaterial color="#eab308" />
+    </mesh>
+  </group>
+);
+
 // --- MAIN SCENE LOGIC ---
 
 function CollisionScene({ params, results, isPlaying }) {
   const cart1Ref = useRef();
   const cart2Ref = useRef();
-  const [time, setTime] = useState(0);
+  const timeRef = useRef(0);
 
-  const initialDist = 12; // Start positions
-  const relativeVelocity = params.initial_velocity_1 - params.initial_velocity_2;
-  const tCollide = relativeVelocity > 0 ? initialDist / relativeVelocity : Infinity;
+  const initialDist = 12; // Start positions at x = -6 and x = +6
+  const trackLimit = 13.75; // Boundary at bumpers (cart half-width 0.6 + bumper offset)
+
+  // Initialize and reset cart positions
+  React.useEffect(() => {
+    timeRef.current = 0;
+    if (cart1Ref.current && cart2Ref.current) {
+      cart1Ref.current.position.x = -initialDist / 2;
+      cart2Ref.current.position.x = initialDist / 2;
+    }
+  }, [params, results, isPlaying]);
 
   useFrame((state, delta) => {
-    if (!isPlaying || !results || !cart1Ref.current || !cart2Ref.current) return;
-    
-    // Smooth timing
-    setTime((prev) => prev + delta);
-    const t = time;
+    if (!cart1Ref.current || !cart2Ref.current) return;
+
+    if (!isPlaying || !results) {
+      // Keep carts stationary at their starting launch points
+      cart1Ref.current.position.x = -initialDist / 2;
+      cart2Ref.current.position.x = initialDist / 2;
+      return;
+    }
+
+    const dt = Math.min(delta, 0.05);
+    timeRef.current += dt;
+    const t = timeRef.current;
+
+    const relativeVelocity = params.initial_velocity_1 - params.initial_velocity_2;
+    const tCollide = relativeVelocity > 0 ? initialDist / relativeVelocity : Infinity;
+
+    let x1 = -initialDist / 2;
+    let x2 = initialDist / 2;
 
     if (t < tCollide) {
       // Pre-collision (approaching)
-      cart1Ref.current.position.x = -initialDist/2 + params.initial_velocity_1 * t;
-      cart2Ref.current.position.x = initialDist/2 + params.initial_velocity_2 * t;
+      x1 = -initialDist / 2 + params.initial_velocity_1 * t;
+      x2 = initialDist / 2 + params.initial_velocity_2 * t;
     } else {
-      // Post-collision (after impact)
+      // Post-collision (after impact with cart separation offset)
       const tPost = t - tCollide;
-      const collisionX = -initialDist/2 + params.initial_velocity_1 * tCollide;
+      const collisionX = -initialDist / 2 + params.initial_velocity_1 * tCollide;
       
-      cart1Ref.current.position.x = collisionX + results.object_1.final_velocity_m_per_s * tPost;
-      cart2Ref.current.position.x = collisionX + results.object_2.final_velocity_m_per_s * tPost;
+      x1 = collisionX - 0.6 + results.object_1.final_velocity_m_per_s * tPost;
+      x2 = collisionX + 0.6 + results.object_2.final_velocity_m_per_s * tPost;
     }
+
+    // Safely clamp within the physical track bumper limits (stops at bumper pads)
+    cart1Ref.current.position.x = Math.max(-trackLimit, Math.min(trackLimit, x1));
+    cart2Ref.current.position.x = Math.max(-trackLimit, Math.min(trackLimit, x2));
   });
 
   return (
@@ -123,7 +169,7 @@ function CollisionScene({ params, results, isPlaying }) {
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
       
-      {/* Aluminum Track */}
+      {/* Aluminum Dynamics Track */}
       <mesh position={[0, 0.05, 0]} receiveShadow>
         <boxGeometry args={[30, 0.1, 1.2]} />
         <meshStandardMaterial color="#cbd5e1" metalness={0.8} roughness={0.3} />
@@ -135,9 +181,13 @@ function CollisionScene({ params, results, isPlaying }) {
         <meshBasicMaterial color="#eab308" /> 
       </mesh>
 
-      {/* Photogates placed exactly at ±5 meters */}
-      <Photogate position={[-5, 0.1, 0]} />
-      <Photogate position={[5, 0.1, 0]} />
+      {/* Track End Bumpers with rubber shock absorbers at both ends */}
+      <TrackBumper position={[-14.5, 0.05, 0]} isLeft={true} />
+      <TrackBumper position={[14.5, 0.05, 0]} isLeft={false} />
+
+      {/* Photogates placed at ±4.5 meters */}
+      <Photogate position={[-4.5, 0.1, 0]} />
+      <Photogate position={[4.5, 0.1, 0]} />
 
       {/* Dynamics Carts */}
       <DynamicsCart 
@@ -149,7 +199,7 @@ function CollisionScene({ params, results, isPlaying }) {
       />
       <DynamicsCart 
         ref={cart2Ref} 
-        color="#10b981" // Changed to green/emerald for better contrast
+        color="#10b981" 
         mass={params.mass_2} 
         isLeft={false} 
         restitution={params.restitution_coefficient} 

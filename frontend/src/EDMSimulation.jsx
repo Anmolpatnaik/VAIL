@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import EDM3D from "./EDM3D"; 
+import ValidatedParameterControl from "./ValidatedParameterControl";
 
 function EDMSimulation({ onSaveData }) {
   // Input Parameters
@@ -8,6 +9,10 @@ function EDMSimulation({ onSaveData }) {
   const [voltage, setVoltage] = useState(50);
   const [pulseOn, setPulseOn] = useState(100);
   const [pulseOff, setPulseOff] = useState(50);
+
+  const [invalidInputs, setInvalidInputs] = useState({});
+  const hasInvalid = Object.values(invalidInputs).some(Boolean);
+  const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
 
   // Simulation State
   const [isMachining, setIsMachining] = useState(false);
@@ -18,11 +23,14 @@ function EDMSimulation({ onSaveData }) {
     setResults(null);
 
     setTimeout(() => {
+      const safePulseOff = Math.max(pulseOff || 0, 1);
       const energyFactor = (current * voltage) / 1000;
-      const dutyFactor = pulseOn / pulseOff;
+      const dutyFactor = pulseOn / safePulseOff;
       const shapeMultiplier = toolShape === "cubical" ? 1.1 : 1.0; 
 
-      const calculatedMrr = Math.max(0.5, energyFactor * dutyFactor * 1.8 * shapeMultiplier).toFixed(2);
+      const calculatedMrr = (current > 0 && voltage > 0)
+        ? Math.max(0.1, energyFactor * dutyFactor * 1.8 * shapeMultiplier).toFixed(2)
+        : "0.00";
       
       const initWeight = 250.0;
       const machTime = 15;
@@ -38,7 +46,17 @@ function EDMSimulation({ onSaveData }) {
         mrr: calculatedMrr,
       });
       setIsMachining(false);
-    }, 2000);
+    }, 1800);
+  };
+
+  const handleReset = () => {
+    setCurrent(0);
+    setVoltage(0);
+    setPulseOn(100);
+    setPulseOff(50);
+    setToolShape("cylindrical");
+    setIsMachining(false);
+    setResults(null);
   };
 
   const handleSaveToTable = () => {
@@ -61,22 +79,29 @@ function EDMSimulation({ onSaveData }) {
       
       {/* LEFT SIDE: Control Panel (Shifted from Right) */}
       <div 
+        className="sim-control-panel"
         style={{ 
           width: "340px", 
-          background: "#0f172a", 
-          padding: "24px", 
-          borderRadius: "12px", 
-          color: "#f8fafc", 
           display: "flex", 
           flexDirection: "column", 
-          gap: "18px",
-          border: "1px solid #1e3a5f",
+          gap: "16px",
           overflowY: "auto"
         }}
       >
-        <h3 style={{ margin: 0, color: "#38bdf8", borderBottom: "1px solid #1e3a5f", paddingBottom: "10px" }}>
+        <h3 className="sim-panel-title" style={{ margin: 0, borderBottom: "1px solid rgba(148, 163, 184, 0.2)", paddingBottom: "10px" }}>
           ⚙️ EDM Parameters
         </h3>
+
+        {/* LABORATORY REAL-TIME CALIBRATION CAUTION */}
+        <div className="lab-caution-banner" style={{ margin: "0 0 10px 0" }}>
+          <span className="lab-caution-icon">⚠️</span>
+          <div className="lab-caution-content">
+            <div className="lab-caution-title">Real-Time Lab Calibration</div>
+            <div className="lab-caution-text">
+              Machining parameters (current 1–50 A, gap voltage 15–120 V, pulse ON 10–500 µs, pulse OFF 5–250 µs) are strictly calibrated to industrial spark erosion electrical discharge machines. Out-of-range inputs will be rejected.
+            </div>
+          </div>
+        </div>
         
         {/* Tool Shape Dropdown */}
         <div>
@@ -87,16 +112,7 @@ function EDMSimulation({ onSaveData }) {
             value={toolShape} 
             onChange={(e) => setToolShape(e.target.value)}
             disabled={isMachining}
-            style={{ 
-              width: "100%", 
-              padding: "10px", 
-              borderRadius: "6px", 
-              background: "#1e293b", 
-              color: "#f8fafc", 
-              border: "1px solid #334155",
-              cursor: isMachining ? "not-allowed" : "pointer",
-              outline: "none"
-            }}
+            className="sim-select"
           >
             <option value="cylindrical">Cylindrical</option>
             <option value="cubical">Cubical</option>
@@ -104,84 +120,121 @@ function EDMSimulation({ onSaveData }) {
         </div>
 
         {/* Discharge Current */}
-        <div>
-          <label style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "8px" }}>
-            <span>Discharge Current (I)</span>
-            <strong style={{ color: "#f8fafc" }}>{current} A</strong>
-          </label>
-          <input type="range" min="5" max="50" step="1" value={current} onChange={(e) => setCurrent(e.target.value)} disabled={isMachining} style={{ width: "100%", cursor: isMachining ? "not-allowed" : "pointer", accentColor: "#38bdf8" }} />
-        </div>
+        <ValidatedParameterControl
+          label="Discharge Current (I)"
+          limitHint="1.0 – 50.0 A (Generator Source)"
+          value={current}
+          unit="A"
+          min={1.0}
+          max={50.0}
+          step={0.5}
+          disabled={isMachining}
+          formatDecimals={1}
+          onChange={(val) => setCurrent(val)}
+          onValidityChange={(isVal) => setFieldInvalid("current", isVal)}
+        />
 
         {/* Gap Voltage */}
-        <div>
-          <label style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "8px" }}>
-            <span>Gap Voltage (V)</span>
-            <strong style={{ color: "#f8fafc" }}>{voltage} V</strong>
-          </label>
-          <input type="range" min="30" max="120" step="5" value={voltage} onChange={(e) => setVoltage(e.target.value)} disabled={isMachining} style={{ width: "100%", cursor: isMachining ? "not-allowed" : "pointer", accentColor: "#38bdf8" }} />
-        </div>
+        <ValidatedParameterControl
+          label="Gap Voltage (V)"
+          limitHint="15 – 120 V (Spark Gap)"
+          value={voltage}
+          unit="V"
+          min={15.0}
+          max={120.0}
+          step={1.0}
+          disabled={isMachining}
+          formatDecimals={0}
+          onChange={(val) => setVoltage(val)}
+          onValidityChange={(isVal) => setFieldInvalid("voltage", isVal)}
+        />
 
         {/* Pulse ON Time */}
-        <div>
-          <label style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "8px" }}>
-            <span>Pulse ON Time (Ton)</span>
-            <strong style={{ color: "#f8fafc" }}>{pulseOn} µs</strong>
-          </label>
-          <input type="range" min="10" max="500" step="10" value={pulseOn} onChange={(e) => setPulseOn(e.target.value)} disabled={isMachining} style={{ width: "100%", cursor: isMachining ? "not-allowed" : "pointer", accentColor: "#38bdf8" }} />
-        </div>
+        <ValidatedParameterControl
+          label="Pulse ON Time (Ton)"
+          limitHint="10 – 500 µs"
+          value={pulseOn}
+          unit="µs"
+          min={10.0}
+          max={500.0}
+          step={5.0}
+          disabled={isMachining}
+          formatDecimals={0}
+          onChange={(val) => setPulseOn(val)}
+          onValidityChange={(isVal) => setFieldInvalid("pulseOn", isVal)}
+        />
 
         {/* Pulse OFF Time */}
-        <div>
-          <label style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "8px" }}>
-            <span>Pulse OFF Time (Toff)</span>
-            <strong style={{ color: "#f8fafc" }}>{pulseOff} µs</strong>
-          </label>
-          <input type="range" min="10" max="200" step="5" value={pulseOff} onChange={(e) => setPulseOff(e.target.value)} disabled={isMachining} style={{ width: "100%", cursor: isMachining ? "not-allowed" : "pointer", accentColor: "#38bdf8" }} />
-        </div>
+        <ValidatedParameterControl
+          label="Pulse OFF Time (Toff)"
+          limitHint="5 – 250 µs"
+          value={pulseOff}
+          unit="µs"
+          min={5.0}
+          max={250.0}
+          step={5.0}
+          disabled={isMachining}
+          formatDecimals={0}
+          onChange={(val) => setPulseOff(val)}
+          onValidityChange={(isVal) => setFieldInvalid("pulseOff", isVal)}
+        />
+
+        {hasInvalid && (
+          <div className="sim-input-error-msg" style={{ marginBottom: "8px", padding: "6px 10px" }}>
+            ⚠️ Cannot machine: One or more parameters exceed permissible lab range. Please correct invalid inputs.
+          </div>
+        )}
 
         {/* Run Button */}
         <button 
           onClick={handleRunSimulation} 
-          disabled={isMachining} 
-          style={{ 
-            padding: "14px", 
-            background: isMachining ? "#334155" : "#2563eb", 
-            color: "#fff", 
-            border: "none", 
-            borderRadius: "8px", 
-            cursor: isMachining ? "not-allowed" : "pointer", 
-            fontWeight: "bold", 
-            marginTop: "8px",
-            transition: "all 0.2s"
-          }}
+          disabled={isMachining || hasInvalid} 
+          className="sim-btn-primary"
+          style={{ marginTop: "12px" }}
         >
-          {isMachining ? "Machining..." : "▶ Start Machining"}
+          {isMachining ? "⚡ Machining in Progress..." : "▶ Start Machining"}
+        </button>
+
+        {/* Reset Button */}
+        <button 
+          onClick={handleReset} 
+          disabled={isMachining} 
+          className="sim-btn-reset"
+          style={{ marginTop: "10px" }}
+          title="Reset parameters to 0 V / 0 A baseline and clear results"
+        >
+          <span>🔄</span> Reset to Baseline (0 V / 0 A)
         </button>
 
         {/* Results Box */}
         {results && (
-          <div style={{ marginTop: "10px", padding: "16px", background: "#020617", borderRadius: "8px", border: "1px solid #1e293b" }}>
-            <h4 style={{ margin: "0 0 12px 0", color: "#e2e8f0", fontSize: "14px" }}>Simulation Results</h4>
+          <div className="sim-highlight-card" style={{ marginTop: "14px", padding: "16px" }}>
+            <h4 className="sim-highlight-card-title" style={{ margin: "0 0 12px 0", fontSize: "13px" }}>Simulation Results</h4>
             
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "6px" }}>
-              <span>Initial Weight:</span> <span>{results.initWeight} g</span>
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">Initial Weight:</span>
+              <span className="sim-calc-val-normal">{results.initWeight} g</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "6px" }}>
-              <span>Final Weight:</span> <span style={{ color: "#facc15" }}>{results.finalWeight} g</span>
+            <div className="sim-calc-row">
+              <span className="sim-calc-label">Final Weight:</span>
+              <span className="sim-calc-val-warning">{results.finalWeight} g</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#94a3b8", marginBottom: "12px" }}>
-              <span>Machining Time:</span> <span>{results.machTime} min</span>
+            <div className="sim-calc-row" style={{ marginBottom: "10px" }}>
+              <span className="sim-calc-label">Machining Time:</span>
+              <span className="sim-calc-val-normal">{results.machTime} min</span>
             </div>
             
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#f8fafc", fontWeight: "bold", paddingTop: "10px", borderTop: "1px solid #1e293b" }}>
-              <span>MRR:</span> <span style={{ color: "#4ade80" }}>{results.mrr} mm³/min</span>
+            <div className="sim-calc-row sim-calc-divider">
+              <span className="sim-calc-label-highlight">MRR:</span>
+              <span className="sim-calc-val-success">{results.mrr} mm³/min</span>
             </div>
             
             <button 
               onClick={handleSaveToTable} 
-              style={{ width: "100%", padding: "10px", marginTop: "16px", background: "#16a34a", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
+              className="sim-btn-success"
+              style={{ width: "100%", marginTop: "14px" }}
             >
-              💾 Record Observation
+              📥 Record Observation
             </button>
           </div>
         )}

@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import Scene3D from "./impulsemomentum3d";
 import CollisionCharts from "./impulsemomentumcharts"; // Import the new charts
+import ValidatedParameterControl from "./ValidatedParameterControl";
 import { ENDPOINTS } from "./apiConfig";
 
 export default function ImpulseMomentum({ onSaveData }) {
   const [params, setParams] = useState({
-    mass_1: 2.0,
-    initial_velocity_1: 5.0,
-    mass_2: 2.0,
-    initial_velocity_2: -3.0,
+    mass_1: 1.0,
+    initial_velocity_1: 1.5,
+    mass_2: 1.0,
+    initial_velocity_2: -1.0,
     restitution_coefficient: 1.0,
   });
+
+  const [invalidInputs, setInvalidInputs] = useState({});
+  const hasInvalid = Object.values(invalidInputs).some(Boolean);
+  const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
 
   const [results, setResults] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -19,6 +24,28 @@ export default function ImpulseMomentum({ onSaveData }) {
 
   const handleChange = (e) => {
     setParams({ ...params, [e.target.name]: parseFloat(e.target.value) });
+  };
+
+  const handleParamChange = (name, value) => {
+    setParams((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleReset = () => {
+    setParams({
+      mass_1: 1.0,
+      initial_velocity_1: 0.0,
+      mass_2: 1.0,
+      initial_velocity_2: 0.0,
+      restitution_coefficient: 1.0,
+    });
+    setResults(null);
+    setIsPlaying(false);
+    setSceneKey((prev) => prev + 1);
+  };
+
+  const handleReturnToStart = () => {
+    setIsPlaying(false);
+    setSceneKey((prev) => prev + 1);
   };
 
   const handleSimulate = async () => {
@@ -93,82 +120,211 @@ export default function ImpulseMomentum({ onSaveData }) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100 text-gray-800 font-sans overflow-hidden">
-      
-      {/* LEFT SIDEBAR: Controls */}
-      <div className="w-full md:w-1/4 p-6 bg-white shadow-xl z-10 overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-6 text-blue-600">Dynamics Lab</h1>
-        
-        <div className="space-y-4 mb-6">
-          <h2 className="font-semibold text-gray-700 border-b pb-1">Cart 1 (Blue)</h2>
-          <div>
-            <label className="block text-xs font-medium text-gray-500">Mass (kg)</label>
-            <input type="number" step="0.5" name="mass_1" value={params.mass_1} onChange={handleChange} className="w-full border p-2 rounded bg-gray-50" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500">Initial Velocity (m/s)</label>
-            <input type="number" step="0.5" name="initial_velocity_1" value={params.initial_velocity_1} onChange={handleChange} className="w-full border p-2 rounded bg-gray-50" />
-          </div>
-
-          <h2 className="font-semibold text-gray-700 border-b pb-1 mt-4">Cart 2 (Green)</h2>
-          <div>
-            <label className="block text-xs font-medium text-gray-500">Mass (kg)</label>
-            <input type="number" step="0.5" name="mass_2" value={params.mass_2} onChange={handleChange} className="w-full border p-2 rounded bg-gray-50" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500">Initial Velocity (m/s)</label>
-            <input type="number" step="0.5" name="initial_velocity_2" value={params.initial_velocity_2} onChange={handleChange} className="w-full border p-2 rounded bg-gray-50" />
-          </div>
-
-          <h2 className="font-semibold text-gray-700 border-b pb-1 mt-4">Environment</h2>
-          <div>
-            <label className="block text-xs font-medium text-gray-500">Restitution (0 = Velcro, 1 = Magnets)</label>
-            <input type="number" step="0.1" min="0" max="1" name="restitution_coefficient" value={params.restitution_coefficient} onChange={handleChange} className="w-full border p-2 rounded bg-gray-50" />
-          </div>
-        </div>
-
-        <button 
-          onClick={handleSimulate} 
-          className="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition shadow-md mb-3"
-        >
-          Fire Carts
-        </button>
-
-        {/* SAVE READING BUTTON */}
-        <button 
-          onClick={handleSaveObservation} 
-          className="w-full bg-emerald-600 text-white font-bold py-2.5 rounded hover:bg-emerald-700 transition shadow-md flex items-center justify-center gap-2"
-        >
-          <span>📥</span> Save to Observations
-        </button>
-
-        {savedSuccess && (
-          <p className="text-xs text-center text-emerald-600 font-semibold mt-2">
-            ✓ Reading saved to observation table!
-          </p>
-        )}
-
-        {results && (
-          <div className="mt-6 p-4 bg-blue-50 rounded border border-blue-100">
-            <h3 className="font-bold text-sm text-blue-800 mb-2">Photogate Readings</h3>
-            <p className="text-xs text-gray-700"><strong>Cart 1 Final:</strong> {results.object_1.final_velocity_m_per_s} m/s</p>
-            <p className="text-xs text-gray-700"><strong>Cart 2 Final:</strong> {results.object_2.final_velocity_m_per_s} m/s</p>
-            <p className="text-xs text-gray-700 mt-2"><strong>KE Loss:</strong> {results.system.kinetic_energy_loss_J} J</p>
-          </div>
-        )}
+    <div style={{ width: "100%", boxSizing: "border-box", fontFamily: "Arial, Helvetica, sans-serif" }}>
+      {/* Title */}
+      <div style={{ marginBottom: "18px" }}>
+        <h2 style={{ margin: 0, fontSize: "26px", color: "#38bdf8", fontWeight: 800 }}>
+          💥 Impulse & Momentum Collision Laboratory
+        </h2>
+        <p style={{ marginTop: "6px", marginBottom: 0, color: "#94a3b8", fontSize: "14px" }}>
+          Simulate 1D dynamic cart collisions with photogate telemetry, momentum conservation, and kinetic energy analysis.
+        </p>
       </div>
 
-      {/* RIGHT WORKSPACE: 3D Scene + Charts */}
-      <div className="w-full md:w-3/4 flex flex-col h-screen">
-        
-        {/* Top 60%: 3D Canvas */}
-        <div className="w-full h-[60%] bg-[#1e293b] relative">
-          <Scene3D key={sceneKey} params={params} results={results} isPlaying={isPlaying} />
+      {/* Main Grid: Control Panel (Left) + 3D View & Charts (Right) */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(310px, 350px) minmax(0, 1fr)",
+          gap: "20px",
+          alignItems: "start",
+        }}
+      >
+        {/* LEFT SIDEBAR: Controls */}
+        <div className="sim-control-panel">
+          <div className="sim-panel-title">Track Parameters</div>
+          
+          {/* LABORATORY REAL-TIME CALIBRATION CAUTION */}
+          <div className="lab-caution-banner">
+            <span className="lab-caution-icon">⚠️</span>
+            <div className="lab-caution-content">
+              <div className="lab-caution-title">Real-Time Lab Calibration</div>
+              <div className="lab-caution-text">
+                Track dynamics parameters (cart mass 0.10–5.00 kg, velocities -5.0 to +5.0 m/s, restitution 0.0–1.0) are strictly calibrated to physical university dynamics air tracks and collision carts. Values outside this range will be rejected.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: "16px" }}>
+            <h3 className="sim-section-header">Cart 1 (Blue)</h3>
+            <ValidatedParameterControl
+              label="Mass"
+              limitHint="0.10 – 5.00 kg"
+              value={params.mass_1}
+              unit="kg"
+              min={0.10}
+              max={5.00}
+              step={0.05}
+              formatDecimals={2}
+              onChange={(val) => handleParamChange("mass_1", val)}
+              onValidityChange={(isVal) => setFieldInvalid("mass_1", isVal)}
+            />
+
+            <ValidatedParameterControl
+              label="Initial Velocity"
+              limitHint="-5.0 – +5.0 m/s"
+              value={params.initial_velocity_1}
+              unit="m/s"
+              min={-5.0}
+              max={5.0}
+              step={0.1}
+              formatDecimals={1}
+              onChange={(val) => handleParamChange("initial_velocity_1", val)}
+              onValidityChange={(isVal) => setFieldInvalid("initial_velocity_1", isVal)}
+            />
+
+            <h3 className="sim-section-header">Cart 2 (Green)</h3>
+            <ValidatedParameterControl
+              label="Mass"
+              limitHint="0.10 – 5.00 kg"
+              value={params.mass_2}
+              unit="kg"
+              min={0.10}
+              max={5.00}
+              step={0.05}
+              formatDecimals={2}
+              onChange={(val) => handleParamChange("mass_2", val)}
+              onValidityChange={(isVal) => setFieldInvalid("mass_2", isVal)}
+            />
+
+            <ValidatedParameterControl
+              label="Initial Velocity"
+              limitHint="-5.0 – +5.0 m/s"
+              value={params.initial_velocity_2}
+              unit="m/s"
+              min={-5.0}
+              max={5.0}
+              step={0.1}
+              formatDecimals={1}
+              onChange={(val) => handleParamChange("initial_velocity_2", val)}
+              onValidityChange={(isVal) => setFieldInvalid("initial_velocity_2", isVal)}
+            />
+
+            <h3 className="sim-section-header">Environment</h3>
+            <ValidatedParameterControl
+              label="Coefficient of Restitution (Elasticity)"
+              limitHint="0.0 – 1.0 (0=Inelastic, 1=Elastic)"
+              value={params.restitution_coefficient}
+              unit="coeff (e)"
+              min={0.0}
+              max={1.0}
+              step={0.05}
+              formatDecimals={2}
+              onChange={(val) => handleParamChange("restitution_coefficient", val)}
+              onValidityChange={(isVal) => setFieldInvalid("restitution_coefficient", isVal)}
+            />
+          </div>
+
+          {hasInvalid && (
+            <div className="sim-input-error-msg" style={{ marginBottom: "12px", padding: "6px 10px" }}>
+              ⚠️ Cannot fire carts: One or more parameters exceed permissible lab range. Please correct invalid inputs.
+            </div>
+          )}
+
+          {/* BEAUTIFIED ACTION BUTTONS */}
+          <button 
+            onClick={handleSimulate} 
+            disabled={hasInvalid}
+            className="sim-btn-primary"
+            style={{ width: "100%", marginTop: "14px" }}
+            title="Launch dynamic collision test"
+          >
+            🚀 Fire Carts
+          </button>
+
+          <button 
+            onClick={handleReturnToStart} 
+            className="sim-btn-slate"
+            style={{ width: "100%", marginTop: "10px" }}
+            title="Return carts back to their starting positions"
+          >
+            ↩ Reset Track
+          </button>
+
+          {/* SAVE READING BUTTON */}
+          <button 
+            onClick={handleSaveObservation} 
+            className="sim-btn-success"
+            style={{ width: "100%", marginTop: "10px" }}
+            title="Log collision kinematics into observation table"
+          >
+            📥 Save to Observations
+          </button>
+
+          {/* RESET BUTTON */}
+          <button 
+            onClick={handleReset} 
+            className="sim-btn-reset"
+            style={{ width: "100%", marginTop: "10px" }}
+            title="Reset parameters to 0 m/s defaults and reset scene"
+          >
+            <span>🔄</span> Reset to Baseline (0 m/s)
+          </button>
+
+          {savedSuccess && (
+            <div style={{ 
+              marginTop: "8px", 
+              padding: "6px 10px", 
+              borderRadius: "6px", 
+              background: "rgba(16, 185, 129, 0.15)", 
+              border: "1px solid #10b981", 
+              color: "#34d399", 
+              fontSize: "12px", 
+              fontWeight: "700", 
+              textAlign: "center" 
+            }}>
+              ✓ Reading saved to observation table!
+            </div>
+          )}
+
+          {results && (
+            <div className="sim-highlight-card" style={{ marginTop: "16px" }}>
+              <div className="sim-highlight-card-title" style={{ marginBottom: "8px" }}>Photogate Readings</div>
+              <div className="sim-calc-row">
+                <span className="sim-calc-label">Cart 1 Final:</span>
+                <span className="sim-calc-val-accent">{results.object_1.final_velocity_m_per_s} m/s</span>
+              </div>
+              <div className="sim-calc-row">
+                <span className="sim-calc-label">Cart 2 Final:</span>
+                <span className="sim-calc-val-accent">{results.object_2.final_velocity_m_per_s} m/s</span>
+              </div>
+              <div className="sim-calc-row" style={{ marginTop: "4px" }}>
+                <span className="sim-calc-label">KE Loss:</span>
+                <span className="sim-calc-val-warning">{results.system.kinetic_energy_loss_J} J</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Bottom 40%: Charts */}
-        <div className="w-full h-[40%] p-4 bg-gray-100 overflow-hidden">
-          <CollisionCharts params={params} results={results} />
+        {/* RIGHT WORKSPACE: 3D Scene + Charts */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "18px", minWidth: 0 }}>
+          {/* 3D Canvas */}
+          <div 
+            style={{ 
+              height: "440px", 
+              borderRadius: "12px", 
+              overflow: "hidden", 
+              border: "1px solid #1e3a5f", 
+              background: "#071321" 
+            }}
+          >
+            <Scene3D key={sceneKey} params={params} results={results} isPlaying={isPlaying} />
+          </div>
+
+          {/* Charts */}
+          <div className="sim-graph-card" style={{ marginTop: 0, padding: "18px" }}>
+            <CollisionCharts params={params} results={results} />
+          </div>
         </div>
 
       </div>
