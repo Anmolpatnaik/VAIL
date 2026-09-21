@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, memo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Text, Line, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
@@ -8,24 +8,9 @@ import * as THREE from "three";
  HYSTERESIS3D.jsx
  COMPLETE DROP-IN 3D HYSTERESIS LAB
 =========================================================
-
- Compatible with:
-
- <Hysteresis3D
-   powerOn={running}
-   field={magneticField}
-   magnetization={fluxDensity}
-   frequency={frequency}
-   loss={loss}
-   temperature={25}
-   mode="normal"
-   loopPoints={loopPoints}
- />
-
-=========================================================
 */
 
-export default function Hysteresis3D({
+export default memo(function Hysteresis3D({
   powerOn = false,
   field = 0,
   magnetization = 0,
@@ -173,7 +158,9 @@ export default function Hysteresis3D({
           near: 0.1,
           far: 100,
         }}
-        dpr={[1, 2]}
+        dpr={[1, 1.5]}
+        performance={{ min: 0.5 }}
+        gl={{ powerPreference: "high-performance", antialias: true }}
       >
         <color attach="background" args={["#06101c"]} />
 
@@ -269,7 +256,7 @@ export default function Hysteresis3D({
       </div>
     </div>
   );
-}
+});
 
 /*
 =========================================================

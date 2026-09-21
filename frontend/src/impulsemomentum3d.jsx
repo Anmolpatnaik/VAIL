@@ -166,8 +166,14 @@ function CollisionScene({ params, results, isPlaying }) {
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+      <ambientLight intensity={0.7} />
+      <directionalLight
+        position={[5, 10, 5]}
+        intensity={1.8}
+        castShadow
+        shadow-mapSize={[512, 512]}
+        shadow-bias={-0.0001}
+      />
       
       {/* Aluminum Dynamics Track */}
       <mesh position={[0, 0.05, 0]} receiveShadow>
@@ -223,11 +229,19 @@ function CollisionScene({ params, results, isPlaying }) {
   );
 }
 
-export default function Scene3D({ params, results, isPlaying }) {
+const Scene3D = React.memo(function Scene3D({ params, results, isPlaying }) {
   return (
-    <Canvas camera={{ position: [0, 5, 12], fov: 40 }} shadows>
+    <Canvas
+      camera={{ position: [0, 5, 12], fov: 40 }}
+      dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
+      gl={{ powerPreference: "high-performance", antialias: true }}
+      shadows
+    >
       <color attach="background" args={['#1e293b']} />
       <CollisionScene params={params} results={results} isPlaying={isPlaying} />
     </Canvas>
   );
-}
+});
+
+export default Scene3D;

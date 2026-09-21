@@ -126,12 +126,20 @@ function OpAmpScene({ vin, vout, isSaturated, config, isRunning }) {
   );
 }
 
-export default function OpAmp3D({ vin, vout, isSaturated, config, isRunning }) {
+const OpAmp3D = React.memo(function OpAmp3D({ vin, vout, isSaturated, config, isRunning }) {
   return (
     <div style={{ width: "100%", height: "550px", position: "relative", borderRadius: "12px", overflow: "hidden" }}>
-      <Canvas gl={{ preserveDrawingBuffer: true }} camera={{ position: [3, 3.5, 4.5], fov: 45 }} style={{ background: "#030712" }}>
+      <Canvas
+        gl={{ preserveDrawingBuffer: true, powerPreference: "high-performance", antialias: true }}
+        dpr={[1, 1.5]}
+        performance={{ min: 0.5 }}
+        camera={{ position: [3, 3.5, 4.5], fov: 45 }}
+        style={{ background: "#030712" }}
+      >
         <OpAmpScene vin={vin} vout={vout} isSaturated={isSaturated} config={config} isRunning={isRunning} />
       </Canvas>
     </div>
   );
-}
+});
+
+export default OpAmp3D;

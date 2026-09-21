@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
   OrbitControls,
   Text,
   Line,
   RoundedBox,
-  Environment,
+  Html,
 } from "@react-three/drei";
 
 /*
@@ -15,7 +15,7 @@ Realistic Virtual Physics Laboratory
 =========================================================
 */
 
-export default function RC3D({
+export default memo(function RC3D({
   powerOn,
   mode,
   capacitorVoltage,
@@ -145,28 +145,36 @@ export default function RC3D({
 
       <Canvas
         camera={{
-          position: [0, 4.2, 7.5], // Changed from [0, 6.5, 11] to bring camera closer
-          fov: 38,                 // Reduced FOV for a larger, focused view
+          position: [0, 4.2, 7.5],
+          fov: 38,
         }}
+        dpr={[1, 1.5]}
+        performance={{ min: 0.5 }}
+        gl={{ powerPreference: "high-performance", antialias: true, alpha: false }}
         shadows
       >
-      
         <color attach="background" args={["#071321"]} />
 
-        <ambientLight intensity={1.3} />
+        <ambientLight intensity={1.4} />
 
         <directionalLight
           position={[4, 8, 5]}
-          intensity={2}
+          intensity={2.2}
           castShadow
+          shadow-mapSize={[512, 512]}
+          shadow-bias={-0.0001}
+        />
+
+        <directionalLight
+          position={[-4, 5, 2]}
+          intensity={1.0}
+          color="#93c5fd"
         />
 
         <pointLight
           position={[-5, 4, 2]}
-          intensity={1.5}
+          intensity={1.2}
         />
-
-        <Environment preset="city" />
 
         {/* =================================================
             SCALED LAB APPARATUS GROUP
@@ -177,7 +185,7 @@ export default function RC3D({
           <RoundedBox
             args={[13, 0.35, 7]}
             radius={0.15}
-            smoothness={4}
+            smoothness={2}
             position={[0, -1.4, 0]}
             receiveShadow
           >
@@ -192,7 +200,7 @@ export default function RC3D({
           <RoundedBox
             args={[13, 6, 0.25]}
             radius={0.12}
-            smoothness={4}
+            smoothness={2}
             position={[0, 1.4, -3.5]}
           >
             <meshStandardMaterial
@@ -365,7 +373,7 @@ export default function RC3D({
       </div>
     </div>
   );
-}
+});
 
 /*
 =========================================================
@@ -379,7 +387,7 @@ function Battery({ voltage, powerOn }) {
       <RoundedBox
         args={[1.7, 2.2, 1.5]}
         radius={0.15}
-        smoothness={4}
+        smoothness={2}
         castShadow
       >
         <meshStandardMaterial
@@ -579,6 +587,7 @@ function Capacitor({
         />
       </mesh>
 
+      {/* Static Spec Label */}
       <Text
         position={[0.38, 1.5, 0]}
         fontSize={0.25}
@@ -588,61 +597,62 @@ function Capacitor({
         C = {capacitance} μF
       </Text>
 
-      <Text
-        position={[0.38, 1.15, 0]}
-        fontSize={0.22}
-        color="white"
-        anchorX="center"
+      {/* Live Readout Badge via ultra-lightweight HTML overlay (Zero 3D font re-tessellation) */}
+      <Html
+        position={[0.38, 0, 0.88]}
+        transform
+        center
+        distanceFactor={6.5}
+        pointerEvents="none"
       >
-        Vc = {voltage.toFixed(2)} V
-      </Text>
+        <div
+          style={{
+            background: "rgba(7, 19, 33, 0.92)",
+            border: "1px solid #38bdf8",
+            borderRadius: "6px",
+            padding: "5px 9px",
+            textAlign: "center",
+            fontFamily: "monospace",
+            whiteSpace: "nowrap",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+          }}
+        >
+          <div style={{ color: "#ffffff", fontSize: "13px", fontWeight: "bold" }}>
+            Vc = {voltage.toFixed(2)} V
+          </div>
+          <div style={{ color: "#4ade80", fontSize: "11px", marginTop: "2px" }}>
+            {percentage.toFixed(1)}% CHARGED
+          </div>
+        </div>
+      </Html>
 
-      <Text
-        position={[0.38, -1.5, 0]}
-        fontSize={0.22}
-        color="#60a5fa"
-        anchorX="center"
-      >
-        {percentage.toFixed(1)}% CHARGED
-      </Text>
+      {/* Positive charge marks (fast geometric meshes, 0 font overhead) */}
+      {Array.from({ length: 8 }).map((_, index) => {
+        const y = -0.8 + index * 0.23;
+        return (
+          <group key={`pos-${index}`} position={[-0.16, y, 0.88]}>
+            <mesh>
+              <boxGeometry args={[0.07, 0.02, 0.01]} />
+              <meshBasicMaterial color="#ef4444" />
+            </mesh>
+            <mesh>
+              <boxGeometry args={[0.02, 0.07, 0.01]} />
+              <meshBasicMaterial color="#ef4444" />
+            </mesh>
+          </group>
+        );
+      })}
 
-      {/* Positive charge marks */}
-
-      {Array.from({ length: 8 }).map(
-        (_, index) => {
-          const y = -0.8 + index * 0.23;
-
-          return (
-            <Text
-              key={index}
-              position={[-0.16, y, 0.88]}
-              fontSize={0.17}
-              color="#ef4444"
-            >
-              +
-            </Text>
-          );
-        }
-      )}
-
-      {/* Negative charge marks */}
-
-      {Array.from({ length: 8 }).map(
-        (_, index) => {
-          const y = -0.8 + index * 0.23;
-
-          return (
-            <Text
-              key={index}
-              position={[0.91, y, 0.88]}
-              fontSize={0.17}
-              color="#38bdf8"
-            >
-              −
-            </Text>
-          );
-        }
-      )}
+      {/* Negative charge marks (fast geometric meshes, 0 font overhead) */}
+      {Array.from({ length: 8 }).map((_, index) => {
+        const y = -0.8 + index * 0.23;
+        return (
+          <mesh key={`neg-${index}`} position={[0.91, y, 0.88]}>
+            <boxGeometry args={[0.07, 0.02, 0.01]} />
+            <meshBasicMaterial color="#38bdf8" />
+          </mesh>
+        );
+      })}
 
       {powerOn && (
         <pointLight
@@ -787,7 +797,7 @@ function Multimeter({
       <RoundedBox
         args={[3.3, 2.2, 0.55]}
         radius={0.2}
-        smoothness={5}
+        smoothness={2}
         castShadow
       >
         <meshStandardMaterial
@@ -802,7 +812,7 @@ function Multimeter({
       <RoundedBox
         args={[2.35, 0.75, 0.08]}
         radius={0.08}
-        smoothness={3}
+        smoothness={2}
         position={[0, 0.4, 0.32]}
       >
         <meshStandardMaterial
@@ -812,16 +822,30 @@ function Multimeter({
         />
       </RoundedBox>
 
-      {/* Digital reading */}
-
-      <Text
-        position={[0, 0.43, 0.38]}
-        fontSize={0.34}
-        color="#4ade80"
-        anchorX="center"
+      {/* Digital reading using hardware-accelerated HTML (zero 3D font re-tessellation) */}
+      <Html
+        position={[0, 0.41, 0.38]}
+        transform
+        center
+        distanceFactor={6}
+        pointerEvents="none"
       >
-        {value.toFixed(2)} {unit}
-      </Text>
+        <div
+          style={{
+            fontFamily: "monospace",
+            fontWeight: "bold",
+            fontSize: "20px",
+            color: "#4ade80",
+            textShadow: "0 0 8px rgba(74, 222, 128, 0.7)",
+            background: "transparent",
+            whiteSpace: "nowrap",
+            textAlign: "center",
+            letterSpacing: "1.5px",
+          }}
+        >
+          {value.toFixed(2)} {unit}
+        </div>
+      </Html>
 
       <Text
         position={[0, 0.0, 0.32]}
@@ -835,7 +859,7 @@ function Multimeter({
       {/* Meter dial */}
 
       <mesh position={[0, -0.45, 0.32]}>
-        <cylinderGeometry args={[0.28, 0.28, 0.08, 32]} />
+        <cylinderGeometry args={[0.28, 0.28, 0.08, 24]} />
         <meshStandardMaterial
           color="#111827"
           metalness={0.7}
@@ -879,7 +903,7 @@ function Probe({
       <RoundedBox
         args={[0.3, 1.25, 0.3]}
         radius={0.08}
-        smoothness={4}
+        smoothness={2}
         rotation={[0, 0, -0.3]}
       >
         <meshStandardMaterial

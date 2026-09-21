@@ -133,17 +133,27 @@ const VibratingString = ({ mode, amplitude, isPlaying, angularFreq, linearDensit
   );
 };
 
-// --- MAIN SCENE ---
-
-export default function Scene3D({ params, results, isPlaying }) {
+const Scene3D = React.memo(function Scene3D({ params, results, isPlaying }) {
   const angularFreq = results?.physics?.angular_frequency_rad_per_s || 0;
   const displayFreq = results?.physics?.frequency_hz || 0;
 
   return (
-    <Canvas camera={{ position: [0, 4, 10], fov: 45 }} shadows>
+    <Canvas
+      camera={{ position: [0, 4, 10], fov: 45 }}
+      dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
+      gl={{ powerPreference: "high-performance", antialias: true }}
+      shadows
+    >
       <color attach="background" args={['#1e293b']} />
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
+      <ambientLight intensity={0.7} />
+      <directionalLight
+        position={[5, 10, 5]}
+        intensity={1.8}
+        castShadow
+        shadow-mapSize={[512, 512]}
+        shadow-bias={-0.0001}
+      />
 
       {/* Lab Bench / Table */}
       <mesh position={[0, -0.5, 0]} receiveShadow>
@@ -193,4 +203,6 @@ export default function Scene3D({ params, results, isPlaying }) {
       <OrbitControls makeDefault maxPolarAngle={Math.PI / 2 + 0.1} />
     </Canvas>
   );
-}
+});
+
+export default Scene3D;

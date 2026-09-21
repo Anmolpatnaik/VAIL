@@ -99,9 +99,14 @@ function EDMScene({ isMachining, toolShape }) {
 }
 
 // Main Export Component
-export default function EDM3D({ isMachining, toolShape }) {
+const EDM3D = React.memo(function EDM3D({ isMachining, toolShape }) {
   return (
-    <Canvas camera={{ position: [6, 5, 6], fov: 40 }}>
+    <Canvas
+      camera={{ position: [6, 5, 6], fov: 40 }}
+      dpr={[1, 1.5]}
+      performance={{ min: 0.5 }}
+      gl={{ powerPreference: "high-performance", antialias: true }}
+    >
       <color attach="background" args={["#000000"]} />
       
       {/* Allows the user to rotate 360°, pan, and zoom! */}
@@ -111,4 +116,6 @@ export default function EDM3D({ isMachining, toolShape }) {
       <EDMScene isMachining={isMachining} toolShape={toolShape} />
     </Canvas>
   );
-}
+});
+
+export default EDM3D;

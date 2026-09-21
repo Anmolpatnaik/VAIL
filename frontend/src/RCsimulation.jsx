@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import RC3D from "./RC3D";
 import ValidatedParameterControl from "./ValidatedParameterControl";
 
@@ -55,6 +55,7 @@ export default function RCSimulation({ onSaveData }) {
   const lastTimeRef = useRef(null);
   const dischargeInitialVoltageRef = useRef(0);
   const lastGraphUpdateRef = useRef(0);
+  const lastStateUpdateRef = useRef(0);
 
   const safeR = Math.max(resistance || 0, 1);
   const safeC = Math.max(capacitance || 0, 1);
@@ -89,6 +90,7 @@ export default function RCSimulation({ onSaveData }) {
   useEffect(() => {
     if (!running) {
       lastTimeRef.current = null;
+      lastStateUpdateRef.current = 0;
       return;
     }
 
@@ -150,18 +152,22 @@ export default function RCSimulation({ onSaveData }) {
         }
       }
 
-      setCapacitorVoltage(vc);
-      setCurrent(i);
+      // Throttle React state updates to ~30 FPS (every 33ms) to prevent UI thread lag
+      if (timestamp - lastStateUpdateRef.current >= 33) {
+        lastStateUpdateRef.current = timestamp;
+        setCapacitorVoltage(vc);
+        setCurrent(i);
+      }
 
-      // Record graph sample every 50ms
-      if (timestamp - lastGraphUpdateRef.current >= 50) {
+      // Record graph sample every 100ms (max 150 points for optimal SVG rendering)
+      if (timestamp - lastGraphUpdateRef.current >= 100) {
         lastGraphUpdateRef.current = timestamp;
         setGraphData((previous) => {
           const next = [
             ...previous,
             { time: t, voltage: vc, current: i },
           ];
-          return next.length > 300 ? next.slice(next.length - 300) : next;
+          return next.length > 150 ? next.slice(next.length - 150) : next;
         });
       }
 
@@ -600,7 +606,7 @@ function ResultCard({ title, value, unit }) {
  * RC GRAPH (SVG) - Robust Laboratory Scale & Accurate Trace
  * ============================================================
  */
-function RCGraph({
+const RCGraph = memo(function RCGraph({
   title,
   yLabel,
   xLabel,
@@ -879,4 +885,4 @@ function RCGraph({
       </div>
     </div>
   );
-}
+});
