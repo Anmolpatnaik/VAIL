@@ -2452,6 +2452,7 @@ select:focus {
   margin: 0;
 }
 .sim-num-input {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 
@@ -3791,6 +3792,7 @@ select:focus {
 .app.dark-theme .offline-glitch-404 {
   background: linear-gradient(135deg, #38bdf8 0%, #a855f7 50%, #f43f5e 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.3));
 }
@@ -3798,6 +3800,7 @@ select:focus {
 .app.light-theme .offline-glitch-404 {
   background: linear-gradient(135deg, #0284c7 0%, #6366f1 50%, #e11d48 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
