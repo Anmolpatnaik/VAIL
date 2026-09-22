@@ -331,13 +331,13 @@ function ACSource({ powerOn, frequency }) {
         const pulse =
           0.9 +
           0.2 *
-            Math.sin(
-              t *
-                Math.max(
-                  1,
-                  Number(frequency) * 0.15
-                )
-            );
+          Math.sin(
+            t *
+            Math.max(
+              1,
+              Number(frequency) * 0.15
+            )
+          );
 
         lampRef.current.scale.setScalar(pulse);
       } else {
@@ -608,10 +608,10 @@ function MagnetizingCoil({
   const rotationSpeed =
     powerOn
       ? 0.4 +
-        Math.min(
-          2,
-          Math.abs(Number(frequency)) / 40
-        )
+      Math.min(
+        2,
+        Math.abs(Number(frequency)) / 40
+      )
       : 0;
 
   useFrame((state, delta) => {
@@ -655,10 +655,10 @@ function MagnetizingCoil({
             emissiveIntensity={
               powerOn
                 ? 1.2 +
-                  Math.min(
-                    1,
-                    Math.abs(Number(field)) / 500
-                  )
+                Math.min(
+                  1,
+                  Math.abs(Number(field)) / 500
+                )
                 : 0
             }
             metalness={0.8}
@@ -700,11 +700,11 @@ function SearchCoil({
     const pulse =
       powerOn
         ? 1 +
-          Math.sin(
-            state.clock.elapsedTime * 6
-          ) *
-            0.08 *
-            Math.min(1, b)
+        Math.sin(
+          state.clock.elapsedTime * 6
+        ) *
+        0.08 *
+        Math.min(1, b)
         : 1;
 
     ref.current.scale.set(
@@ -759,7 +759,7 @@ function FluxLines({
   const strength = Math.min(
     1,
     Math.abs(Number(magnetization) || 0) /
-      1.5
+    1.5
   );
 
   useFrame((state) => {
@@ -771,7 +771,7 @@ function FluxLines({
           child.position.x =
             Math.sin(
               state.clock.elapsedTime * 3 +
-                index
+              index
             ) *
             0.05 *
             strength;
@@ -921,9 +921,9 @@ function CRO({
       const y =
         Math.tanh(
           1.8 *
-            Math.sin(
-              t - 0.35
-            )
+          Math.sin(
+            t - 0.35
+          )
         ) *
         1.1;
 
@@ -1013,22 +1013,22 @@ function CRO({
         <mesh
           position={[
             (Number(field) || 0) /
-              Math.max(
-                1,
-                Math.abs(
-                  Number(field) || 1
-                )
-              ) *
-              1.6,
+            Math.max(
+              1,
+              Math.abs(
+                Number(field) || 1
+              )
+            ) *
+            1.6,
             (Number(magnetization) || 0) /
-              Math.max(
-                1,
-                Math.abs(
-                  Number(magnetization) || 1
-                )
-              ) *
-              1.0 +
-              0.25,
+            Math.max(
+              1,
+              Math.abs(
+                Number(magnetization) || 1
+              )
+            ) *
+            1.0 +
+            0.25,
             0.78,
           ]}
         >
