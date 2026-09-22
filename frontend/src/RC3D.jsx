@@ -603,10 +603,13 @@ function Capacitor({
         transform
         center
         distanceFactor={6.5}
+        occlude
         pointerEvents="none"
       >
         <div
           style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
             background: "rgba(7, 19, 33, 0.92)",
             border: "1px solid #38bdf8",
             borderRadius: "6px",
@@ -828,10 +831,13 @@ function Multimeter({
         transform
         center
         distanceFactor={6}
+        occlude
         pointerEvents="none"
       >
         <div
           style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
