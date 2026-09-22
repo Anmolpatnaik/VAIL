@@ -824,7 +824,7 @@ function Multimeter({
 
       {/* Digital reading using hardware-accelerated HTML (zero 3D font re-tessellation) */}
       <Html
-        position={[0, 0.41, 0.38]}
+        position={[0, 0.4, 0.38]}
         transform
         center
         distanceFactor={6}
@@ -832,29 +832,46 @@ function Multimeter({
       >
         <div
           style={{
-            fontFamily: "monospace",
-            fontWeight: "bold",
-            fontSize: "20px",
-            color: "#4ade80",
-            textShadow: "0 0 8px rgba(74, 222, 128, 0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "160px",
+            height: "54px",
             background: "transparent",
-            whiteSpace: "nowrap",
-            textAlign: "center",
-            letterSpacing: "1.5px",
+            userSelect: "none",
           }}
         >
-          {value.toFixed(2)} {unit}
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              fontSize: "18px",
+              lineHeight: 1.1,
+              color: "#4ade80",
+              textShadow: "0 0 8px rgba(74, 222, 128, 0.7)",
+              letterSpacing: "1.5px",
+              textAlign: "center",
+            }}
+          >
+            {value.toFixed(2)} {unit}
+          </div>
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontSize: "9.5px",
+              fontWeight: "600",
+              color: "#6ee7b7",
+              opacity: 0.85,
+              letterSpacing: "1.2px",
+              marginTop: "4px",
+              textAlign: "center",
+            }}
+          >
+            DC {mode === "voltage" ? "VOLTAGE" : "CURRENT"}
+          </div>
         </div>
       </Html>
-
-      <Text
-        position={[0, 0.0, 0.32]}
-        fontSize={0.18}
-        color="#9ca3af"
-        anchorX="center"
-      >
-        DC {mode === "voltage" ? "VOLTAGE" : "CURRENT"}
-      </Text>
 
       {/* Meter dial */}
 
