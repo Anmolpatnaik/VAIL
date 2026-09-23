@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import OpAmp3D from "./OpAmp3D";
 import ValidatedParameterControl from "./ValidatedParameterControl";
 
-export default function OpAmpSimulation({ onSaveData }) {
+export default function OpAmpSimulation({ onSaveData, onSimulationUpdate }) {
   const [config, setConfig] = useState("inverting");
   const [vin, setVin] = useState(1.0);
   const [r1, setR1] = useState(10);
@@ -16,6 +16,27 @@ export default function OpAmpSimulation({ onSaveData }) {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+
+  React.useEffect(() => {
+    if (onSimulationUpdate) {
+      const safeR1 = Math.max(r1 || 0, 0.1);
+      const gain = config === "inverting" ? -(rf / safeR1) : (1 + (rf / safeR1));
+      let vout = gain * vin;
+      if (vout > vcc) vout = vcc;
+      if (vout < -vcc) vout = -vcc;
+      onSimulationUpdate({
+        vin: Number(vin).toFixed(1),
+        vout: Number(vout.toFixed(2)),
+        dcv: Number(vout.toFixed(2)),
+        acv: Number(vin).toFixed(1),
+        gain: Number(gain.toFixed(2)),
+        r1: r1,
+        rf: rf,
+        config: config,
+        vcc: vcc,
+      });
+    }
+  }, [vin, r1, rf, config, vcc, onSimulationUpdate]);
 
   const handleSimulate = () => {
     setLoading(true);
@@ -69,7 +90,7 @@ export default function OpAmpSimulation({ onSaveData }) {
   return (
     <div style={{ width: "100%", boxSizing: "border-box", fontFamily: "Arial, Helvetica, sans-serif", color: "#172033" }}>
       {/* Main Workspace */}
-      <div style={{ display: "grid", gridTemplateColumns: "300px minmax(0, 1fr)", gap: "20px", alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "300px minmax(0, 1fr)", gap: "20px", alignItems: "stretch" }}>
         
         {/* Control Panel */}
         <div className="sim-control-panel">
@@ -206,8 +227,8 @@ export default function OpAmpSimulation({ onSaveData }) {
         </div>
 
         {/* Right Column: 3D Workspace */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ minWidth: 0, minHeight: "520px", borderRadius: "12px", overflow: "hidden", background: "#030712", boxShadow: "0 3px 12px rgba(15,23,42,0.12)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", height: "100%" }}>
+          <div style={{ minWidth: 0, height: "100%", minHeight: "540px", flex: 1, borderRadius: "12px", overflow: "hidden", background: "#030712", boxShadow: "0 3px 12px rgba(15,23,42,0.12)" }}>
            <OpAmp3D 
              vin={vin} 
              vout={results ? results.output_voltage : 0} 

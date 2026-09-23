@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix frontend run dev",
+    "backend": "cd backend && python -m uvicorn main:app --reload --port 8000",
     "build": "cd frontend && npm install && npm run build"
   }
 }

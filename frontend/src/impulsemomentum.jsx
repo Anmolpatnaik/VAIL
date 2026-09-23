@@ -4,7 +4,7 @@ import CollisionCharts from "./impulsemomentumcharts"; // Import the new charts
 import ValidatedParameterControl from "./ValidatedParameterControl";
 import { ENDPOINTS } from "./apiConfig";
 
-export default function ImpulseMomentum({ onSaveData }) {
+export default function ImpulseMomentum({ onSaveData, onSimulationUpdate }) {
   const [params, setParams] = useState({
     mass_1: 1.0,
     initial_velocity_1: 1.5,
@@ -16,6 +16,23 @@ export default function ImpulseMomentum({ onSaveData }) {
   const [invalidInputs, setInvalidInputs] = useState({});
   const hasInvalid = Object.values(invalidInputs).some(Boolean);
   const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
+
+  React.useEffect(() => {
+    if (onSimulationUpdate) {
+      const p1 = params.mass_1 * params.initial_velocity_1;
+      const p2 = params.mass_2 * params.initial_velocity_2;
+      onSimulationUpdate({
+        v1: Number(params.initial_velocity_1.toFixed(2)),
+        v2: Number(params.initial_velocity_2.toFixed(2)),
+        mass1: Number(params.mass_1.toFixed(2)),
+        mass2: Number(params.mass_2.toFixed(2)),
+        p1: Number(p1.toFixed(3)),
+        p2: Number(p2.toFixed(3)),
+        totalMomentum: Number((p1 + p2).toFixed(3)),
+        restitution: params.restitution_coefficient,
+      });
+    }
+  }, [params, onSimulationUpdate]);
 
   const [results, setResults] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);

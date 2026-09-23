@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:modal": "vite build --ssr src/test_run_modal.jsx --outDir dist-test && node dist-test/test_run_modal.js",
+    "test": "npm run test:modal"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -16,6 +18,7 @@
     "react": "^19.2.8",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
     "recharts": "^3.10.1",
     "three": "^0.185.1"
   },

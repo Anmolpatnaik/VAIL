@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import EDM3D from "./EDM3D"; 
 import ValidatedParameterControl from "./ValidatedParameterControl";
 
-function EDMSimulation({ onSaveData }) {
+function EDMSimulation({ onSaveData, onSimulationUpdate }) {
   // Input Parameters
   const [toolShape, setToolShape] = useState("cylindrical");
   const [current, setCurrent] = useState(15);
@@ -17,6 +17,25 @@ function EDMSimulation({ onSaveData }) {
   // Simulation State
   const [isMachining, setIsMachining] = useState(false);
   const [results, setResults] = useState(null);
+
+  React.useEffect(() => {
+    if (onSimulationUpdate) {
+      const safePulseOff = Math.max(pulseOff || 0, 1);
+      const energyFactor = (current * voltage) / 1000;
+      const dutyFactor = pulseOn / (pulseOn + safePulseOff);
+      const estMrr = Number((energyFactor * dutyFactor * 3.5).toFixed(2));
+      const estDepth = Number((estMrr * 0.05).toFixed(3));
+      onSimulationUpdate({
+        current: current,
+        voltage: voltage,
+        dcv: voltage,
+        depth: estDepth,
+        mrr: estMrr,
+        pulseOn: pulseOn,
+        pulseOff: pulseOff,
+      });
+    }
+  }, [current, voltage, pulseOn, pulseOff, onSimulationUpdate]);
 
   const handleRunSimulation = () => {
     setIsMachining(true);

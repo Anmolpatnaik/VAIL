@@ -19,7 +19,7 @@ import ValidatedParameterControl from "./ValidatedParameterControl";
  * ============================================================
  */
 
-export default function RCSimulation({ onSaveData }) {
+export default function RCSimulation({ onSaveData, onSimulationUpdate }) {
   /*
    * ==========================================================
    * EXPERIMENTAL PARAMETERS
@@ -38,6 +38,19 @@ export default function RCSimulation({ onSaveData }) {
   const [mode, setMode] = useState("charge");
   const [capacitorVoltage, setCapacitorVoltage] = useState(0);
   const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (onSimulationUpdate) {
+      onSimulationUpdate({
+        dcv: Number(capacitorVoltage.toFixed(2)),
+        acv: 0.02,
+        dca: Number((current * 1000).toFixed(2)),
+        res: resistance,
+        cap: capacitance,
+        voltage: voltage,
+      });
+    }
+  }, [capacitorVoltage, current, resistance, capacitance, voltage, onSimulationUpdate]);
 
   /*
    * ==========================================================
@@ -159,7 +172,7 @@ export default function RCSimulation({ onSaveData }) {
         setCurrent(i);
       }
 
-      // Record graph sample every 100ms (max 150 points for optimal SVG rendering)
+      // Record graph sample every 100ms without truncating historical points from t=0
       if (timestamp - lastGraphUpdateRef.current >= 100) {
         lastGraphUpdateRef.current = timestamp;
         setGraphData((previous) => {
@@ -167,7 +180,11 @@ export default function RCSimulation({ onSaveData }) {
             ...previous,
             { time: t, voltage: vc, current: i },
           ];
-          return next.length > 150 ? next.slice(next.length - 150) : next;
+          // Downsample evenly only if data grows beyond 3000 points, never discarding t=0
+          if (next.length > 3000) {
+            return next.filter((_, idx) => idx % 2 === 0 || idx === next.length - 1);
+          }
+          return next;
         });
       }
 
@@ -288,7 +305,7 @@ export default function RCSimulation({ onSaveData }) {
           display: "grid",
           gridTemplateColumns: "minmax(280px, 320px) minmax(0, 1fr)",
           gap: "20px",
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
         {/* CONTROL PANEL */}
@@ -411,11 +428,15 @@ export default function RCSimulation({ onSaveData }) {
         <div
           style={{
             minWidth: 0,
-            height: "440px",
+            height: "100%",
+            minHeight: "520px",
+            maxHeight: "660px",
             borderRadius: "12px",
             overflow: "hidden",
             background: "#071321",
             border: "1px solid #1e3a5f",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <RC3D
@@ -460,7 +481,8 @@ export default function RCSimulation({ onSaveData }) {
           colorType="voltage"
           maxY={voltage}
           tau={tau}
-          finalValue={voltage}
+          finalValue={mode === "discharge" ? (dischargeInitialVoltageRef.current || voltage) : voltage}
+          currentMode={mode}
         />
 
         {/* CURRENT GRAPH */}
@@ -477,7 +499,7 @@ export default function RCSimulation({ onSaveData }) {
               1.0
             )}
             tau={tau}
-            finalValue={0}
+            finalValue={((mode === "discharge" ? (dischargeInitialVoltageRef.current || voltage) : voltage) / safeR) * 1000}
             currentMode={mode}
           />
         </div>
@@ -787,8 +809,8 @@ const RCGraph = memo(function RCGraph({
             </g>
           )}
 
-          {/* THEORETICAL REFERENCE */}
-          {colorType === "voltage" && finalValue > 0 && (
+          {/* THEORETICAL REFERENCE ASYMPTOTE */}
+          {colorType === "voltage" && currentMode === "charge" && finalValue > 0 && (
             <line
               x1={paddingLeft}
               y1={getY(finalValue)}
@@ -797,6 +819,44 @@ const RCGraph = memo(function RCGraph({
               stroke="#94a3b8"
               strokeWidth="1"
               strokeDasharray="4 4"
+            />
+          )}
+
+          {/* THEORETICAL EXPONENTIAL REFERENCE CURVE */}
+          {tau > 0 && maxTime > 0 && (
+            <path
+              d={(() => {
+                const steps = 100;
+                let pathStr = "";
+                for (let s = 0; s <= steps; s++) {
+                  const tSample = (s / steps) * maxTime;
+                  let valSample = 0;
+                  if (colorType === "voltage") {
+                    const v0 = finalValue || yMax;
+                    if (currentMode === "discharge") {
+                      valSample = v0 * Math.exp(-tSample / tau);
+                    } else {
+                      valSample = v0 * (1 - Math.exp(-tSample / tau));
+                    }
+                  } else {
+                    const i0 = finalValue > 0 ? finalValue : yMax;
+                    if (currentMode === "discharge") {
+                      valSample = -i0 * Math.exp(-tSample / tau);
+                    } else {
+                      valSample = i0 * Math.exp(-tSample / tau);
+                    }
+                  }
+                  const x = getX(tSample);
+                  const y = getY(valSample);
+                  pathStr += s === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
+                }
+                return pathStr;
+              })()}
+              fill="none"
+              stroke="#94a3b8"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+              opacity="0.75"
             />
           )}
 

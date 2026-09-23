@@ -1,0 +1,163 @@
+{
+  "id": "hysteresis",
+  "title": "Hysteresis Loss",
+  "subtitle": "B-H Curve",
+  "icon": "🧲",
+  "branch": "cse",
+  "discipline": "Physics",
+  "level": "BTech Year 1",
+  "description": "Study the hysteresis loop and understand energy loss in magnetic materials.",
+
+  "video": {
+    "title": "Hysteresis Loss & B-H Loop Tutorial",
+    "src": "/videos/hysteresis.mp4",
+    "hasVideo": true,
+    "summary": "Demonstration of cyclic core magnetization, loop area integration, and coercivity/remanence extraction."
+  },
+
+  "safety": {
+    "protocol": "UPEM / Electrical Safety Protocol",
+    "isElectrical": true,
+    "precautions": [
+      {
+        "title": "🧲 Core Overheating & Thermal Dissipation",
+        "severity": "danger",
+        "borderColor": "#ef4444",
+        "titleColor": "#f87171",
+        "description": "Continuous cyclic magnetization causes high hysteresis/eddy-current losses. Do not operate at peak excitation currents for longer than 3 consecutive minutes."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — Magnetic Hysteresis & Core Loss",
+    "objective": "To investigate the non-linear relationship between magnetic field strength (H) and flux density (B), record the closed B–H loop, and evaluate energy loss per magnetization cycle.",
+    "points": [
+      "Ferromagnetic materials consist of microscopic magnetic domains. In an unmagnetized state, domain orientations are randomly distributed with zero net external magnetization.",
+      "Applying an external magnetic field H aligns these domains in the direction of the field, causing flux density B to increase non-linearly up to saturation.",
+      "When the external field is reversed, domain rotation is resisted by microscopic lattice friction and pinning sites; magnetization lags behind the field, giving rise to 'hysteresis'.",
+      "The area enclosed by the closed B–H trajectory represents electrical energy permanently converted into thermal energy per unit volume during each AC cycle."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Applied Magnetizing Field Strength (Ampere's Law)",
+        "tag": "Excitation Field",
+        "formula": "H = (N · I) / l_m",
+        "variables": [
+          { "sym": "H", "name": "Magnetic Field Strength", "unit": "amperes per meter (A/m)", "desc": "Magnetomotive force applied per unit magnetic path length" },
+          { "sym": "N", "name": "Number of Coil Turns", "unit": "turns (dimensionless)", "desc": "Number of wire loops wound onto the magnetic core" },
+          { "sym": "I", "name": "Excitation Current", "unit": "amperes (A)", "desc": "Instantaneous AC current passing through the excitation winding" },
+          { "sym": "l_m", "name": "Mean Magnetic Path Length", "unit": "meters (m)", "desc": "Average circumferential path length of magnetic flux through the core" }
+        ],
+        "description": "Describes the primary magnetomotive force driving magnetic flux through the core material. Increasing winding turns or current proportionately intensifies the magnetizing field.",
+        "physicalSignificance": "Controlled directly via the laboratory AC excitation voltage and coil configuration."
+      },
+      {
+        "name": "Magnetic Flux Density (Constitutive Relation)",
+        "tag": "Material Response",
+        "formula": "B = μ · H = μ₀ · μ_r · H = μ₀ · (H + M)",
+        "variables": [
+          { "sym": "B", "name": "Magnetic Flux Density", "unit": "tesla (T) or Wb/m²", "desc": "Density of magnetic lines of force per unit cross-sectional area" },
+          { "sym": "μ₀", "name": "Permeability of Free Space", "unit": "H/m (4π × 10⁻⁷)", "desc": "Fundamental physical magnetic constant of vacuum" },
+          { "sym": "μ_r", "name": "Relative Permeability", "unit": "dimensionless", "desc": "Amplification factor of the ferromagnetic material compared to air" },
+          { "sym": "M", "name": "Magnetization Vector", "unit": "A/m", "desc": "Net magnetic dipole moment per unit volume of the specimen" }
+        ],
+        "description": "Measures the resulting magnetic induction inside the core. In ferromagnetic materials, μ_r is not constant but varies dynamically along the non-linear S-shaped hysteresis curve.",
+        "physicalSignificance": "Soft materials (like silicon steel) exhibit steep initial slopes (high permeability), while hard magnets maintain high remanence even when H returns to zero."
+      },
+      {
+        "name": "Hysteresis Energy Loss per Unit Volume",
+        "tag": "Loop Area Law",
+        "formula": "w_h = ∮ B · dH = Area of B–H Hysteresis Loop",
+        "variables": [
+          { "sym": "w_h", "name": "Energy Loss Density per Cycle", "unit": "joules per cubic meter (J/m³)", "desc": "Mechanical/magnetic energy dissipated as heat in one AC cycle" },
+          { "sym": "∮ B dH", "name": "Closed Contour Integral", "unit": "J/m³", "desc": "Area enclosed within the complete B–H curve" }
+        ],
+        "description": "Each AC cycle drives magnetic domains back and forth against internal pinning barriers, irreversibly converting electrical power into heat within the specimen core.",
+        "physicalSignificance": "Transformer cores use narrow sigmoid silicon steel to minimize loop area, whereas permanent magnets require large rhombic loop areas for high coercivity."
+      },
+      {
+        "name": "Total Hysteresis Power Loss (Steinmetz Equation)",
+        "tag": "Thermal Dissipation",
+        "formula": "P_h = k_h · f · (B_max)^n · V_core",
+        "variables": [
+          { "sym": "P_h", "name": "Total Power Dissipation", "unit": "watts (W)", "desc": "Total rate of heat generation across entire core" },
+          { "sym": "k_h", "name": "Steinmetz Hysteresis Coefficient", "unit": "J/(m³·Tⁿ)", "desc": "Material-specific loss constant" },
+          { "sym": "f", "name": "Excitation Frequency", "unit": "hertz (Hz)", "desc": "Frequency of alternating magnetic field cycles" },
+          { "sym": "B_max", "name": "Peak Flux Density", "unit": "tesla (T)", "desc": "Maximum amplitude of magnetic flux density during the cycle" },
+          { "sym": "n", "name": "Steinmetz Exponent", "unit": "dimensionless", "desc": "Empirical exponent (typically 1.6 for iron cores)" },
+          { "sym": "V_core", "name": "Core Volume", "unit": "cubic meters (m³)", "desc": "Physical volume of the ferromagnetic material" }
+        ],
+        "description": "Calculates the total continuous thermal wattage generated. Power loss scales directly with AC operating frequency and strongly with peak induction B_max.",
+        "physicalSignificance": "Directly explains why high-frequency magnetic devices require specialized low-loss core materials to prevent thermal runaway."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Ferromagnetic Specimen Ring / Toroid", "spec": "Soft Iron, Silicon Steel, Ferrite & Alnico Specimens", "quantity": "1 Set", "icon": "🧲" },
+    { "name": "Primary Excitation Magnetizing Coil", "spec": "N₁ = 200 – 500 Turns, Enameled Copper Wire", "quantity": "1 Unit", "icon": "🌀" },
+    { "name": "Secondary Pick-up Search Coil", "spec": "N₂ = 100 – 200 Turns (Tightly Coupled)", "quantity": "1 Unit", "icon": "🔄" },
+    { "name": "Variable AC Source / Variac", "spec": "0 – 240 V AC, 50 Hz Single Phase Autotransformer", "quantity": "1 Unit", "icon": "🔌" },
+    { "name": "Integrating RC Circuit Network", "spec": "Low-Pass Electronic Integrator for Flux B(t) Extraction", "quantity": "1 Unit", "icon": "📐" },
+    { "name": "B-H Loop Tracer / CRO (X-Y Mode)", "spec": "Cathode Ray Oscilloscope with Calibrated X-Y Deflection", "quantity": "1 Unit", "icon": "📈" },
+    { "name": "Digital Hall-Effect Fluxmeter", "spec": "Range 0 – 2.0 T, 1 mT Resolution Hall Probe", "quantity": "1 Unit", "icon": "🎛️" },
+    { "name": "Digital AC/DC Multimeter", "spec": "True RMS Voltage & Excitation Current Monitor", "quantity": "1 Unit", "icon": "📟" }
+  ],
+
+  "procedure": [
+    "Open the Hysteresis Loss experiment.",
+    "Set the maximum value of magnetic field H.",
+    "Select the required number of data points.",
+    "Set the frequency of magnetization.",
+    "Enter the volume of the magnetic material.",
+    "Adjust the field parameters or select a core material preset to compute the real-time B-H loop.",
+    "Observe the B-H hysteresis loop.",
+    "Note the loop area, maximum B, minimum B, coercive field and remanence.",
+    "Calculate the hysteresis energy loss and power loss.",
+    "Compare the obtained results with the theoretical relation."
+  ],
+
+  "observations": {
+    "name": "Hysteresis_Loss",
+    "rows": [
+      { "id": "maxH", "label": "Maximum H (A/m)", "type": "input" },
+      { "id": "freq", "label": "Frequency (Hz)", "type": "input" },
+      { "id": "loopArea", "label": "Loop Area (J/m³)", "type": "observed" },
+      { "id": "loss", "label": "Power Loss (W)", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — Magnetic Hysteresis Loss",
+    "overview": "Quantify applied magnetomotive force, core induction, closed loop integration, and heat dissipation according to electromagnetic core specifications.",
+    "steps": [
+      { "step": 1, "title": "Convert Core Cross-Sectional Area to m²", "desc": "Convert core area from square centimeters (cm²) to square meters (m²):", "equation": "A_core (m²) = A_core (cm²) × 10⁻⁴" },
+      { "step": 2, "title": "Calculate Maximum Magnetic Field Strength (H_max)", "desc": "Compute peak applied field from coil turns N, peak excitation current I_max, and mean path length l_m:", "equation": "H_max = (N × I_max) / l_m" },
+      { "step": 3, "title": "Compute Maximum Flux Density (B_max)", "desc": "Calculate saturation-governed induction using Faraday's AC relation:", "equation": "B_max = V_rms / (4.44 × f × N × A_core)" },
+      { "step": 4, "title": "Calculate Hysteresis Energy Loss per Cycle (w_h)", "desc": "Numerically integrate the area enclosed by the B–H closed contour:", "equation": "w_h = ∮ B dH  (J/m³ per cycle)" },
+      { "step": 5, "title": "Calculate Total Hysteresis Power Loss (P_h)", "desc": "Multiply energy loss per cycle by AC excitation frequency and total core volume:", "equation": "P_h = w_h × f × V_core  (Watts)" }
+    ],
+    "workedExample": {
+      "title": "Standard Transformer Core Worked Example",
+      "given": "AC Voltage = 12.0 V, Turns N = 250, Frequency f = 50 Hz, Core Area = 4.0 cm², Path l_m = 0.25 m",
+      "steps": [
+        "1. Core Area: A = 4.0 × 10⁻⁴ m²; Core Volume V_core = A × l_m = 1.0 × 10⁻⁴ m³",
+        "2. Excitation Current: I_max ≈ 0.12 A  ==>  H_max = (250 × 0.12) / 0.25 = 120.0 A/m",
+        "3. Peak Induction: B_max = 12.0 / (4.44 × 50 × 250 × 0.0004) ≈ 0.54 T",
+        "4. Measured Sigmoid Loop Area: w_h ≈ 45.0 J/m³ per cycle",
+        "5. Total Power Loss: P_h = 45.0 J/m³ × 50 Hz × 0.0001 m³ = 0.225 W = 225 mW"
+      ],
+      "conclusion": "A silicon steel transformer core dissipates 225 mW of continuous thermal power under these conditions, operating within safe temperature tolerances."
+    }
+  },
+
+  "viva": [
+    ["What is magnetic hysteresis?", "The lagging of magnetic flux density B behind the magnetizing field H."],
+    ["What is a hysteresis loop?", "The closed B-H curve obtained during a complete cycle of magnetization."],
+    ["What does the area of the hysteresis loop represent?", "Energy loss per unit volume per cycle."],
+    ["What is coercivity?", "The magnitude of reverse magnetic field required to reduce the magnetic flux density to zero."],
+    ["What is remanence?", "The residual magnetic flux density when the magnetizing field is reduced to zero."],
+    ["How does frequency affect power loss?", "For the simulated model, power loss increases with the frequency of repeated magnetization."]
+  ]
+}

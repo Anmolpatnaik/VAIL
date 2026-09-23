@@ -10,8 +10,12 @@ from Rc.main import router as rc_router
 from edm.main import router as edm_router
 from OpAmp.main import router as opamp_router
 
+# VAIL 2.0 Engine
+from engine.experiment_registry import router as registry_router
+from engine.assistant import router as assistant_router
+from engine.draft_generator import router as draft_router
 
-app = FastAPI(title="Hexascale Master Backend")
+app = FastAPI(title="VAIL 2.0 — Virtual Engineering Laboratory Engine")
 
 # 2. CORS configuration for production and development
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS")
@@ -40,6 +44,11 @@ app.include_router(string_router, prefix="/api/string", tags=["Vibration String"
 app.include_router(rc_router, prefix="/api/rc", tags=["RC Circuit"])
 app.include_router(edm_router, prefix="/api/edm", tags=["EDM"])
 app.include_router(opamp_router, prefix="/api/opamp", tags=["Op-Amp"])
+
+# VAIL 2.0 Engine Registry, AI Assistant & Generative Drafts
+app.include_router(registry_router, prefix="/api/experiments", tags=["Experiment Registry"])
+app.include_router(assistant_router, prefix="/api/assistant", tags=["AI Assistant"])
+app.include_router(draft_router, prefix="/api/draft", tags=["Generative Lab Synthesizer"])
 
 
 # 4. Health checks
