@@ -1,0 +1,184 @@
+{
+  "id": "impulse",
+  "title": "Impulse-Momentum Theorem",
+  "subtitle": "Verification",
+  "icon": "💥",
+  "branch": "cse",
+  "discipline": "Physics",
+  "level": "BTech Year 1",
+  "description": "Verify the impulse-momentum theorem using an interactive collision experiment.",
+
+  "video": {
+    "title": "Impulse-Momentum Theorem Tutorial",
+    "src": "/videos/impulse.mp4",
+    "hasVideo": true,
+    "summary": "Demonstration of collision dynamics, force-time graphs, and impulse calculation."
+  },
+
+  "safety": {
+    "protocol": "Mechanics & Rigging Protocol",
+    "isElectrical": false,
+    "precautions": [
+      {
+        "title": "📊 Piezoelectric Force Sensor Overload",
+        "severity": "danger",
+        "borderColor": "#ef4444",
+        "titleColor": "#f87171",
+        "description": "Never drop heavy collision carts directly against bare force transducers without calibrated spring bumpers to prevent permanent damage to load cells."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — Impulse-Momentum Theorem & Collision Mechanics",
+    "objective": "To verify Newton's second law in impulse formulation, confirm that the time integral of net collision force equals change in linear momentum, and validate momentum conservation in 1D collisions.",
+    "points": [
+      "Linear momentum p is a vector quantity defined as the product of an object's mass and its instantaneous velocity (p = m · v).",
+      "Newton's second law states that net external force is the time derivative of linear momentum: F_net = dp / dt.",
+      "Multiplying by dt and integrating over collision duration Δt reveals that impulse J imparted to an object identically equals the resulting change in momentum Δp.",
+      "In an isolated two-cart system with negligible track friction, internal collision forces obey Newton's third law (F₁₂ = −F₂₁), ensuring total system momentum remains strictly conserved."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Linear Momentum Definition",
+        "tag": "Kinematic Quantity",
+        "formula": "p = m · v",
+        "variables": [
+          { "sym": "p", "name": "Linear Momentum", "unit": "kg·m/s (or N·s)", "desc": "Measure of an object's quantity of motion" },
+          { "sym": "m", "name": "Inertial Mass", "unit": "kilograms (kg)", "desc": "Total mass of the dynamic lab cart" },
+          { "sym": "v", "name": "Velocity Vector", "unit": "meters per second (m/s)", "desc": "Directed velocity along linear air track axis" }
+        ],
+        "description": "Momentum is a directed vector quantity. Direction is critical: carts traveling to the right possess positive momentum (+), while carts moving to the left possess negative momentum (−).",
+        "physicalSignificance": "A heavy cart moving slowly can carry the exact same momentum as a light cart traveling at high speed."
+      },
+      {
+        "name": "Impulse of a Time-Varying Force",
+        "tag": "Force-Time Integral",
+        "formula": "J = ∫ F(t) dt = F_avg · Δt",
+        "variables": [
+          { "sym": "J", "name": "Impulse", "unit": "newton-seconds (N·s)", "desc": "Cumulative effect of collision force acting over time interval Δt" },
+          { "sym": "F(t)", "name": "Instantaneous Contact Force", "unit": "newtons (N)", "desc": "Compression force between cart bumper springs during impact" },
+          { "sym": "F_avg", "name": "Average Impact Force", "unit": "newtons (N)", "desc": "Equivalent steady force delivering identical impulse over duration Δt" },
+          { "sym": "Δt", "name": "Collision Contact Duration", "unit": "seconds (s)", "desc": "Time window from initial contact to separation" }
+        ],
+        "description": "Impulse corresponds graphically to the area under the Force vs Time curve. Extending collision duration Δt (e.g. using soft bumper springs) dramatically reduces peak impact force.",
+        "physicalSignificance": "Fundamental principle behind automotive airbags, crumple zones, and sports equipment shock dampening."
+      },
+      {
+        "name": "Impulse-Momentum Equivalence Principle",
+        "tag": "Theorem Formulation",
+        "formula": "J = Δp = p_final − p_initial = m · (v_f − v_i)",
+        "variables": [
+          { "sym": "J", "name": "Total Imparted Impulse", "unit": "N·s", "desc": "Time integral of contact force during collision" },
+          { "sym": "Δp", "name": "Change in Linear Momentum", "unit": "kg·m/s", "desc": "Difference between post-collision and pre-collision momentum" },
+          { "sym": "v_i", "name": "Initial Velocity", "unit": "m/s", "desc": "Cart launch velocity prior to impact" },
+          { "sym": "v_f", "name": "Final Velocity", "unit": "m/s", "desc": "Cart rebound velocity following impact" }
+        ],
+        "description": "Directly equates the external impulse applied to an object with the observed alteration of its momentum state. Experimentally verified by measuring cart velocities and contact times.",
+        "physicalSignificance": "Provides the bridge connecting kinematics (velocities) with dynamics (impact forces and durations)."
+      },
+      {
+        "name": "1D Momentum Conservation & Coefficient of Restitution",
+        "tag": "System Conservation",
+        "formula": "m₁·v₁_i + m₂·v₂_i = m₁·v₁_f + m₂·v₂_f  |  e = −(v₁_f − v₂_f) / (v₁_i − v₂_i)",
+        "variables": [
+          { "sym": "m₁, m₂", "name": "Cart Masses", "unit": "kg", "desc": "Masses of Cart 1 (Blue) and Cart 2 (Green)" },
+          { "sym": "v_i, v_f", "name": "Initial & Final Velocities", "unit": "m/s", "desc": "Pre- and post-impact velocities of both carts" },
+          { "sym": "e", "name": "Coefficient of Restitution", "unit": "dimensionless (0 to 1)", "desc": "Elasticity index: e = 1 for perfectly elastic, e = 0 for perfectly inelastic" }
+        ],
+        "description": "Total linear momentum of the two-cart system remains invariant before and after collision. The coefficient of restitution e characterizes kinetic energy preservation during impact.",
+        "physicalSignificance": "When e = 1, kinetic energy is fully preserved; when e = 0, carts lock together and maximize energy dissipation."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Precision Linear Air Track", "spec": "Length 2.0 m Anodized Aluminum with Air Cushion Orifices", "quantity": "1 Unit", "icon": "🛤️" },
+    { "name": "Variable Air Cushion Blower", "spec": "Centrifugal Blower Compressor for Frictionless Gliding", "quantity": "1 Unit", "icon": "💨" },
+    { "name": "Glider Collision Carts", "spec": "Cart 1 (m₁ = 250 g) & Cart 2 (m₂ = 250 g) with Optical Flags", "quantity": "2 Units", "icon": "🛒" },
+    { "name": "Elastic & Inelastic Collision Bumpers", "spec": "Hard Steel Leaf Springs & Velcro / Clay Inelastic Pins", "quantity": "1 Set", "icon": "💥" },
+    { "name": "Dual Infrared Photogates", "spec": "Gate 1 & Gate 2 Optoelectronic Velocity Sensors", "quantity": "2 Units", "icon": "⏱️" },
+    { "name": "Millisecond Digital Photogate Timer", "spec": "Microsecond Time-Interval Counter & Flag Speed Monitor", "quantity": "1 Unit", "icon": "📟" },
+    { "name": "Digital Weighing Balance", "spec": "Capacity 1000 g, Precision Resolution 0.01 g", "quantity": "1 Unit", "icon": "⚖️" }
+  ],
+
+  "procedure": [
+    "Set the mass of the object.",
+    "Set the initial velocity.",
+    "Apply the required force.",
+    "Set the time interval for which the force acts.",
+    "Calculate the initial momentum.",
+    "Calculate the impulse using J = FΔt.",
+    "Determine the change in momentum.",
+    "Compare impulse with change in momentum.",
+    "Verify the impulse-momentum theorem."
+  ],
+
+  "observations": {
+    "name": "Impulse_Momentum",
+    "rows": [
+      { "id": "mass", "label": "Mass m (kg)", "type": "input" },
+      { "id": "force", "label": "Applied Force F (N)", "type": "input" },
+      { "id": "impulse", "label": "Calculated Impulse J (N·s)", "type": "observed" },
+      { "id": "deltaP", "label": "Change in Momentum Δp", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — Impulse-Momentum Theorem",
+    "overview": "Verify linear momentum conservation, compute collision impulses from velocity differences, and confirm Newton's Third Law in two-cart collisions.",
+    "steps": [
+      {
+        "step": 1,
+        "title": "Calculate Initial Momentum of Each Cart",
+        "desc": "Compute individual pre-collision momenta using directional velocities (+ for right, − for left):",
+        "equation": "p₁_i = m₁ × v₁_i  and  p₂_i = m₂ × v₂_i"
+      },
+      {
+        "step": 2,
+        "title": "Sum Total Pre-Collision System Momentum",
+        "desc": "Compute net system momentum prior to collision contact:",
+        "equation": "P_initial = p₁_i + p₂_i = (m₁ × v₁_i) + (m₂ × v₂_i)"
+      },
+      {
+        "step": 3,
+        "title": "Calculate Post-Collision Momentum of Each Cart",
+        "desc": "Compute momenta after carts rebound from each other:",
+        "equation": "p₁_f = m₁ × v₁_f  and  p₂_f = m₂ × v₂_f"
+      },
+      {
+        "step": 4,
+        "title": "Calculate Individual Cart Impulses",
+        "desc": "Determine impulse imparted to each cart by evaluating change in momentum:",
+        "equation": "J₁ = Δp₁ = m₁(v₁_f − v₁_i)  and  J₂ = Δp₂ = m₂(v₂_f − v₂_i)"
+      },
+      {
+        "step": 5,
+        "title": "Confirm Momentum Conservation & Equal-and-Opposite Impulses",
+        "desc": "Verify Newton's Third Law (F₁₂ = −F₂₁) and isolated conservation:",
+        "equation": "J₁ + J₂ = 0  ==>  J₁ = −J₂  and  P_final = P_initial"
+      }
+    ],
+    "workedExample": {
+      "title": "Two-Cart Dynamic Track Impact",
+      "given": "Cart 1 (Blue): m₁ = 1.00 kg, v₁_i = +1.50 m/s | Cart 2 (Green): m₂ = 2.00 kg, v₂_i = -1.00 m/s | Restitution e = 0.80",
+      "steps": [
+        "1. Initial Momenta: p₁_i = 1.00 × (+1.50) = +1.50 kg·m/s; p₂_i = 2.00 × (-1.00) = -2.00 kg·m/s",
+        "2. Total Initial Momentum: P_initial = 1.50 + (-2.00) = -0.50 kg·m/s",
+        "3. Post-Collision Velocities: v₁_f = -1.833 m/s; v₂_f = +0.667 m/s",
+        "4. Final Momenta: p₁_f = 1.00 × (-1.833) = -1.833 kg·m/s; p₂_f = 2.00 × (+0.667) = +1.333 kg·m/s",
+        "5. Total Final Momentum: P_final = -1.833 + 1.333 = -0.50 kg·m/s (Conserved identically!)",
+        "6. Impulse Evaluation: J₁ = -1.833 - (+1.50) = -3.333 N·s; J₂ = +1.333 - (-2.00) = +3.333 N·s"
+      ],
+      "conclusion": "Cart 1 experiences an impulse of -3.33 N·s, while Cart 2 experiences an equal and opposite impulse of +3.33 N·s, perfectly verifying J = Δp and J₁ + J₂ = 0."
+    }
+  },
+
+  "viva": [
+    ["What is momentum?", "Momentum is the product of mass and velocity, p = mv."],
+    ["What is impulse?", "Impulse is the product of force and the time interval for which it acts."],
+    ["What is the SI unit of impulse?", "Newton-second (N·s)."],
+    ["State the impulse-momentum theorem.", "Impulse is equal to the change in momentum."],
+    ["What is the mathematical expression for impulse?", "J = FΔt."]
+  ]
+}

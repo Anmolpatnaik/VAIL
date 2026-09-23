@@ -1,0 +1,156 @@
+{
+  "id": "string",
+  "title": "Vibrations on String",
+  "subtitle": "Standing Waves",
+  "icon": "〰️",
+  "branch": "cse",
+  "discipline": "Physics",
+  "level": "BTech Year 1",
+  "description": "Investigate the relationship between tension, frequency and wavelength of a vibrating string.",
+
+  "video": {
+    "title": "Vibrations on String Tutorial",
+    "src": "/videos/string.mp4",
+    "hasVideo": true,
+    "summary": "Demonstration of standing wave nodes, antinodes, tension adjustment, and harmonic frequency verification."
+  },
+
+  "safety": {
+    "protocol": "Mechanics & Rigging Protocol",
+    "isElectrical": false,
+    "precautions": [
+      {
+        "title": "🎯 Resonance Tension & String Snap Hazard",
+        "severity": "info",
+        "borderColor": "#38bdf8",
+        "titleColor": "#38bdf8",
+        "description": "Keep faces away from the plane of the vibrating string. High tensile loading combined with harmonic resonance can cause snapping."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — Transverse Vibrations on a Stretched String",
+    "objective": "To investigate standing wave phenomena in stretched strings, verify the dependency of wave speed on tension and linear mass density, and confirm Melde's frequency and harmonic relations.",
+    "points": [
+      "A transverse mechanical wave propagating along a flexible stretched string reflects at the fixed boundaries with an inverted phase (180° phase shift).",
+      "Superposition of the incident wave and reflected wave produces a standing wave pattern characterized by stationary points of zero motion (nodes) and alternating points of maximum oscillation (antinodes).",
+      "Boundary conditions require nodes at both clamped ends (x = 0 and x = L), restricting sustainable vibrations to discrete harmonic modes n = 1, 2, 3...",
+      "Increasing string tension increases the restoring force, speeding up wave propagation and shifting natural resonant frequencies higher."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Transverse Wave Propagation Velocity",
+        "tag": "Kinematic Wave Law",
+        "formula": "v = √(T / μ)",
+        "variables": [
+          { "sym": "v", "name": "Wave Velocity", "unit": "meters per second (m/s)", "desc": "Phase speed at which transverse disturbances travel down the string" },
+          { "sym": "T", "name": "String Tension", "unit": "newtons (N)", "desc": "Tensile stretching force applied to string (T = m_suspended · g)" },
+          { "sym": "μ", "name": "Linear Mass Density", "unit": "kilograms per meter (kg/m)", "desc": "Mass per unit length of string material (μ = m_string / L_string)" }
+        ],
+        "description": "Wave speed depends exclusively on the balance between restoring tension (T) and inertial mass per unit length (μ). Higher tension increases speed, while heavier cords slow it down.",
+        "physicalSignificance": "Directly tested in the laboratory by changing slotted weights suspended over the end pulley."
+      },
+      {
+        "name": "Standing Wave Harmonic Resonant Frequency",
+        "tag": "Eigenfrequency Law",
+        "formula": "f_n = (n · v) / (2 · L) = (n / (2 · L)) · √(T / μ)",
+        "variables": [
+          { "sym": "f_n", "name": "Resonant Frequency", "unit": "hertz (Hz)", "desc": "Frequency required to sustain the n-th standing harmonic mode" },
+          { "sym": "n", "name": "Harmonic Mode Number", "unit": "integer (1, 2, 3...)", "desc": "Number of vibrating loops (half-wavelength segments) between boundaries" },
+          { "sym": "L", "name": "Vibrating String Length", "unit": "meters (m)", "desc": "Clear distance between the mechanical oscillator tip and the pulley" }
+        ],
+        "description": "Standing wave condition demands that the length of the string must accommodate an integer number of half-wavelengths: L = n · (λ / 2).",
+        "physicalSignificance": "Fundamental mode (n = 1) forms a single central antinode. Higher harmonics (n = 2, 3...) produce multiple distinct loops separated by stationary nodes."
+      },
+      {
+        "name": "Harmonic Wavelength Relation",
+        "tag": "Geometric Condition",
+        "formula": "λ_n = (2 · L) / n = v / f_n",
+        "variables": [
+          { "sym": "λ_n", "name": "Wavelength of Mode n", "unit": "meters (m)", "desc": "Spatial distance spanning one complete sinusoidal wave cycle (two full loops)" },
+          { "sym": "L", "name": "Vibrating Length", "unit": "meters (m)", "desc": "Span length between clamped points" },
+          { "sym": "n", "name": "Harmonic Mode", "unit": "integer", "desc": "Total loop count observed along string span" }
+        ],
+        "description": "The physical distance between two consecutive nodes is exactly half a wavelength (λ / 2). Thus, measuring the distance between adjacent nodes provides an accurate measure of λ.",
+        "physicalSignificance": "Enables students to determine wave speed experimentally without requiring high-speed stroboscopic motion tracking."
+      },
+      {
+        "name": "Standing Wave Profile Equation",
+        "tag": "Wavefunction",
+        "formula": "y(x, t) = 2A · sin((n · π · x) / L) · cos(2π · f_n · t)",
+        "variables": [
+          { "sym": "y(x, t)", "name": "Transverse Displacement", "unit": "meters (m)", "desc": "Vertical deflection of a string element at position x and time t" },
+          { "sym": "A", "name": "Incident Amplitude", "unit": "meters (m)", "desc": "Peak amplitude of individual component traveling waves" },
+          { "sym": "x", "name": "Longitudinal Coordinate", "unit": "meters (m)", "desc": "Position along string axis from clamped boundary" },
+          { "sym": "t", "name": "Time", "unit": "seconds (s)", "desc": "Elapsed oscillation time" }
+        ],
+        "description": "Expresses standing wave motion as the product of a pure spatial shape factor sin(nπx/L) and a temporal oscillation cos(ωt). At nodes (sin = 0), displacement remains zero at all times.",
+        "physicalSignificance": "Explains why nodes never move and why energy is trapped between boundaries rather than flowing along the wire."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Melde's Electrical Vibration Generator", "spec": "Electromagnetic Solenoid / Tuning Fork (50 Hz Exciter)", "quantity": "1 Unit", "icon": "🔊" },
+    { "name": "Inextensible Light Flexible String", "spec": "Linear Mass Density μ = 0.001 kg/m (Braided Silk/Nylon)", "quantity": "1 Spool", "icon": "〰️" },
+    { "name": "Low-Friction Clamped Bench Pulley", "spec": "Precision Ball-Bearing Sheave with Table-Edge Clamp", "quantity": "1 Unit", "icon": "⚙️" },
+    { "name": "Slotted Brass Weights & Scale Pan", "spec": "50 g, 100 g, 200 g, 500 g Weights with Pan (Tension T = Mg)", "quantity": "1 Set", "icon": "⚖️" },
+    { "name": "Meter Scale / Optical Ruler", "spec": "Length 1.0 m, Resolution 1 mm for Loop Node Measurement", "quantity": "1 Unit", "icon": "📏" },
+    { "name": "Digital Frequency Counter / Strobe", "spec": "0 – 200 Hz Variable Frequency Oscillator / Stroboscope", "quantity": "1 Unit", "icon": "🎛️" },
+    { "name": "Precision Bench Timer", "spec": "Resolution 0.01 s with Lap Hold Function", "quantity": "1 Unit", "icon": "⏱️" }
+  ],
+
+  "procedure": [
+    "Set the length of the vibrating string.",
+    "Apply the required tension to the string.",
+    "Set the frequency of vibration.",
+    "Observe the standing-wave pattern.",
+    "Identify the nodes and antinodes.",
+    "Determine the wave velocity.",
+    "Calculate the wavelength using λ = v/f.",
+    "Repeat the experiment by changing the tension or frequency.",
+    "Study the relationship between the experimental parameters."
+  ],
+
+  "observations": {
+    "name": "Vibrations_On_String",
+    "rows": [
+      { "id": "tension", "label": "Tension T (N)", "type": "input" },
+      { "id": "frequency", "label": "Frequency f (Hz)", "type": "input" },
+      { "id": "wavelength", "label": "Wavelength λ (m)", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — Vibrations on Stretched String",
+    "overview": "Derive mechanical wave propagation speed, harmonic wavelengths, resonant frequencies, and nodal positions from string tension and density.",
+    "steps": [
+      { "step": 1, "title": "Calculate String Tension (T)", "desc": "Calculate tension produced by hanging slotted weights over the friction-free pulley:", "equation": "T = m_hanging (kg) × 9.81 m/s²" },
+      { "step": 2, "title": "Calculate Wave Velocity (v)", "desc": "Apply the kinematic relation for transverse mechanical waves on flexible strings:", "equation": "v = √(T / μ)" },
+      { "step": 3, "title": "Determine Mode Wavelength (λ_n)", "desc": "For harmonic mode n (number of loops), compute the spatial wavelength:", "equation": "λ_n = (2 × L) / n" },
+      { "step": 4, "title": "Compute Required Resonant Frequency (f_n)", "desc": "Calculate the driving frequency needed to sustain harmonic mode n:", "equation": "f_n = v / λ_n = (n / (2L)) × √(T / μ)" },
+      { "step": 5, "title": "Locate Stationary Node Positions", "desc": "Nodes occur at regular intervals along the length of the string where net displacement remains zero:", "equation": "x_node = k × (λ_n / 2) = k × (L / n)  for k = 0, 1, ..., n" }
+    ],
+    "workedExample": {
+      "title": "Melde's Apparatus Harmonic Analysis",
+      "given": "String Length L = 1.20 m, Hanging Weight = 400 g (T = 3.92 N), Cord Density μ = 0.001 kg/m, Desired Mode n = 3 loops",
+      "steps": [
+        "1. String Tension: T = 0.400 kg × 9.81 m/s² = 3.924 N",
+        "2. Wave Speed: v = √(3.924 / 0.001) = √3924 ≈ 62.64 m/s",
+        "3. Mode 3 Wavelength: λ₃ = (2 × 1.20 m) / 3 = 0.800 m",
+        "4. Resonant Frequency: f₃ = 62.64 m/s / 0.800 m = 78.30 Hz",
+        "5. Node Positions: x = 0 m (fixed tip), x = 0.40 m, x = 0.80 m, x = 1.20 m (pulley node)"
+      ],
+      "conclusion": "Setting the generator to 78.30 Hz excites exactly 3 distinct vibrating loops of length 40.0 cm each with nodes at 0.40 m and 0.80 m."
+    }
+  },
+
+  "viva": [
+    ["What is a standing wave?", "A wave pattern produced by interference of incident and reflected waves."],
+    ["What is a node?", "A point of zero displacement."],
+    ["What is an antinode?", "A point of maximum displacement."],
+    ["What happens to wave velocity when tension is increased?", "Wave velocity increases."],
+    ["What is the relation between velocity, frequency and wavelength?", "v = fλ."]
+  ]
+}

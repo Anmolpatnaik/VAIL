@@ -1,0 +1,141 @@
+{
+  "id": "edm",
+  "title": "Electric Discharge Machining",
+  "subtitle": "Smart ZNC EDM",
+  "icon": "⚙️",
+  "branch": "mechanical",
+  "discipline": "Manufacturing Engineering",
+  "level": "BTech Year 2",
+  "description": "Study the effect of current, voltage, and pulse parameters on Material Removal Rate (MRR).",
+
+  "video": {
+    "title": "Smart ZNC EDM Operation Briefing",
+    "src": null,
+    "hasVideo": false,
+    "summary": "Interactive simulation guide: Study current, pulse timing, and spark dynamics on Material Removal Rate (MRR)."
+  },
+
+  "safety": {
+    "protocol": "UPEM / Electrical Safety Protocol",
+    "isElectrical": true,
+    "precautions": [
+      {
+        "title": "🔥 Dielectric Fluid Flash Point Hazard",
+        "severity": "danger",
+        "borderColor": "#ef4444",
+        "titleColor": "#f87171",
+        "description": "Ensure the dielectric fluid level is maintained at least 50mm above the spark gap. Exposing the machining zone to open air during active discharge can ignite vaporized fumes and cause a flash fire."
+      },
+      {
+        "title": "⚡ High-Current Sparking",
+        "severity": "warning",
+        "borderColor": "#f59e0b",
+        "titleColor": "#fbbf24",
+        "description": "Never touch the electrode (tool) or workpiece while the pulse generator is actively discharging. High localized currents are present which pose serious shock and burn hazards."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — Electrical Discharge Machining (EDM)",
+    "objective": "To examine electro-thermal erosion mechanisms in Smart ZNC EDM, quantify Material Removal Rate (MRR) as a function of discharge energy and duty cycle, and determine tool wear ratios.",
+    "points": [
+      "Electrical Discharge Machining is an advanced non-contact thermo-electric manufacturing process where material is removed by controlled, repetitive micro-second electrical sparks.",
+      "A dielectric fluid (hydrocarbon oil or deionized water) maintains electrical insulation across the sub-millimeter tool-workpiece gap until breakdown voltage triggers localized ionization.",
+      "The resulting plasma channel concentrates intense thermal energy (8,000°C to 12,000°C), melting and vaporizing microscopic craters from both conductive workpiece and tool surfaces.",
+      "When the pulse current shuts off (Pulse OFF time), the plasma collapses and dielectric flushing expels molten debris, cooling the workpiece before the subsequent spark cycle."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Material Removal Rate (MRR)",
+        "tag": "Productivity Metric",
+        "formula": "MRR = (W_initial − W_final) / (t_m · ρ_w)",
+        "variables": [
+          { "sym": "MRR", "name": "Material Removal Rate", "unit": "mm³/min (or cm³/min)", "desc": "Volumetric rate of conductive workpiece material eroded" },
+          { "sym": "W_initial", "name": "Pre-Machining Specimen Weight", "unit": "grams (g)", "desc": "Mass of workpiece prior to initiating sparking" },
+          { "sym": "W_final", "name": "Post-Machining Specimen Weight", "unit": "grams (g)", "desc": "Mass of workpiece after dielectric washing and drying" },
+          { "sym": "t_m", "name": "Active Machining Time", "unit": "minutes (min)", "desc": "Total continuous spark duration recorded" },
+          { "sym": "ρ_w", "name": "Workpiece Density", "unit": "g/mm³ (e.g. 0.00785 for steel)", "desc": "Volumetric density of workpiece material" }
+        ],
+        "description": "Determines process efficiency and throughput by converting gravimetric mass loss into physical volume eroded per unit time.",
+        "physicalSignificance": "Higher discharge current and longer Pulse ON time expand crater dimensions, accelerating MRR while increasing surface roughness."
+      },
+      {
+        "name": "Single Spark Discharge Energy",
+        "tag": "Spark Physics",
+        "formula": "E_s = V_gap · I_discharge · T_on",
+        "variables": [
+          { "sym": "E_s", "name": "Single Spark Energy", "unit": "joules (J) or millijoules (mJ)", "desc": "Thermal energy injected into plasma channel per electrical pulse" },
+          { "sym": "V_gap", "name": "Spark Gap Voltage", "unit": "volts (V)", "desc": "Maintained potential difference across spark gap during discharge (typically 20–80 V)" },
+          { "sym": "I_discharge", "name": "Peak Discharge Current", "unit": "amperes (A)", "desc": "Current flowing through plasma channel during Pulse ON" },
+          { "sym": "T_on", "name": "Pulse ON Duration", "unit": "microseconds (µs)", "desc": "Active spark ionization duration" }
+        ],
+        "description": "The volume of melted workpiece material per spark is directly proportional to the energy injected into the microscopic discharge channel.",
+        "physicalSignificance": "Fine finishing utilizes low E_s (low current, short pulse), while roughing uses high E_s for rapid material removal."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Die-Sinking EDM Chamber & Tank", "spec": "Capacity 25 L with Clamping T-Slot Table & Level Sensor", "quantity": "1 Unit", "icon": "🏭" },
+    { "name": "Electrolytic Copper Tool Electrode", "spec": "Purity 99.9% Cu (Diameter 10 mm / Rectangular Tool)", "quantity": "1 Unit", "icon": "📍" },
+    { "name": "Die Steel / Titanium Workpiece Specimen", "spec": "Hardened Tool Steel Block (50 mm × 50 mm × 15 mm)", "quantity": "1 Unit", "icon": "🧱" },
+    { "name": "Dielectric Fluid Circulating System", "spec": "Hydrocarbon EDM Fluid with Submersible Pump & 5 μm Filter", "quantity": "1 System", "icon": "🛢️" },
+    { "name": "Servo-Controlled Z-Axis Feed", "spec": "Closed-Loop Stepper Actuator with Arc Gap Voltage Feedback", "quantity": "1 Unit", "icon": "⚙️" },
+    { "name": "DC Pulse Generator Power Unit", "spec": "Peak Current 0 – 30 A, Open Circuit Voltage 80 – 120 V", "quantity": "1 Unit", "icon": "⚡" },
+    { "name": "Depth Dial Indicator / Micrometer", "spec": "Electronic Digital Dial Indicator, Resolution 0.001 mm", "quantity": "1 Unit", "icon": "📏" },
+    { "name": "Digital Machining Cycle Timer", "spec": "Microprocessor Timing Unit (Minutes / Seconds)", "quantity": "1 Unit", "icon": "⏱️" }
+  ],
+
+  "procedure": [
+    "Select the workpiece and electrode materials.",
+    "Set the operating parameters: Current (I), Voltage (V).",
+    "Adjust the Pulse ON time (Ton) and Pulse OFF time (Toff).",
+    "Initiate the machining process and observe sparking in the dielectric tank.",
+    "Record the initial weight, final weight, and machining time.",
+    "Calculate the Material Removal Rate (MRR) using the provided formula."
+  ],
+
+  "observations": {
+    "name": "Smart_ZNC_EDM",
+    "rows": [
+      { "id": "current", "label": "Discharge Current (A)", "type": "input" },
+      { "id": "voltage", "label": "Gap Voltage (V)", "type": "input" },
+      { "id": "pulseOn", "label": "Pulse ON Time (µs)", "type": "input" },
+      { "id": "pulseOff", "label": "Pulse OFF Time (µs)", "type": "input" },
+      { "id": "initWeight", "label": "Initial Weight (g)", "type": "observed" },
+      { "id": "finalWeight", "label": "Final Weight (g)", "type": "observed" },
+      { "id": "machTime", "label": "Machining Time (min)", "type": "observed" },
+      { "id": "mrr", "label": "MRR (mm³/min)", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — Smart ZNC EDM",
+    "overview": "Calculate volumetric material erosion, gravimetric weight loss, single-spark discharge energy, and tool wear metrics from machining parameters.",
+    "steps": [
+      { "step": 1, "title": "Determine Workpiece Weight Loss", "desc": "Weigh specimen before and after machining on a precision laboratory analytical balance:", "equation": "ΔW_workpiece = W_initial − W_final  (grams)" },
+      { "step": 2, "title": "Convert Mass Loss to Volumetric Erosion", "desc": "Divide mass loss by workpiece material density (e.g. Mild Steel ρ = 0.00785 g/mm³):", "equation": "V_removed (mm³) = ΔW_workpiece / ρ_material" },
+      { "step": 3, "title": "Calculate Material Removal Rate (MRR)", "desc": "Divide eroded volume by active machining time in minutes:", "equation": "MRR (mm³/min) = V_removed / t_machining" },
+      { "step": 4, "title": "Calculate Single Spark Pulse Energy (E_s)", "desc": "Evaluate thermal electrical energy delivered per discharge cycle:", "equation": "E_s (mJ) = V_gap (V) × I_discharge (A) × T_on (µs) × 10⁻³" },
+      { "step": 5, "title": "Calculate Duty Cycle Factor (η)", "desc": "Determine active spark time percentage:", "equation": "Duty Cycle (%) = [T_on / (T_on + T_off)] × 100%" }
+    ],
+    "workedExample": {
+      "title": "Steel Die Sinking Operation",
+      "given": "Discharge Current I = 20.0 A, Gap Voltage V = 45 V, Pulse ON = 120 µs, Pulse OFF = 40 µs, Machining Time = 15 min, Initial W = 250.0 g, Final W = 245.2 g",
+      "steps": [
+        "1. Mass Loss: ΔW = 250.0 g − 245.2 g = 4.80 g",
+        "2. Volume Eroded: V = 4.80 g / 0.00785 g/mm³ = 611.46 mm³",
+        "3. Material Removal Rate: MRR = 611.46 mm³ / 15 min = 40.76 mm³/min",
+        "4. Single Spark Energy: E_s = 45 V × 20 A × 120 µs × 10⁻³ = 108.0 mJ",
+        "5. Duty Cycle: η = [120 / (120 + 40)] × 100% = 75.0%"
+      ],
+      "conclusion": "At 75% duty cycle and 108 mJ per spark, the process achieves a robust volumetric removal rate of 40.76 mm³/min on mild steel workpiece material."
+    }
+  },
+
+  "viva": [
+    ["What is the function of the dielectric fluid in EDM?", "It acts as an insulator until ionization, cools the spark zone, and flushes away debris."],
+    ["How does increasing the Discharge Current affect MRR?", "Higher discharge current increases the spark energy, which leads to a higher Material Removal Rate (MRR) but a rougher surface finish."]
+  ]
+}

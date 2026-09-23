@@ -1,0 +1,134 @@
+{
+  "id": "opamp",
+  "title": "Operational Amplifier",
+  "subtitle": "Inverting / Non-Inverting",
+  "icon": "⚡",
+  "branch": "ece",
+  "discipline": "Analog Electronics",
+  "level": "BTech Year 2",
+  "description": "Study voltage gain, input/output characteristics, and saturation limits using an Op-Amp (IC 741).",
+
+  "video": {
+    "title": "Op-Amp Gain & Characteristics Briefing",
+    "src": null,
+    "hasVideo": false,
+    "summary": "Interactive circuit guide: Explore inverting & non-inverting topologies, voltage gain, and rail saturation."
+  },
+
+  "safety": {
+    "protocol": "UPEM / Electrical Safety Protocol",
+    "isElectrical": true,
+    "precautions": [
+      {
+        "title": "⚡ Supply Rail Voltage Limits",
+        "severity": "danger",
+        "borderColor": "#ef4444",
+        "titleColor": "#f87171",
+        "description": "Do not exceed ±15V on the Vcc (+V) and Vee (-V) pins of the IC 741. Reversing polarity or exceeding absolute maximum ratings (±22V) will cause immediate thermal destruction of the semiconductor junctions."
+      },
+      {
+        "title": "🔌 Input Overdrive / Saturation",
+        "severity": "warning",
+        "borderColor": "#f59e0b",
+        "titleColor": "#fbbf24",
+        "description": "Ensure the input signal voltage (Vin) combined with circuit gain does not demand an output voltage exceeding the supply rails. The Op-Amp will saturate, causing signal clipping and distortion."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — Operational Amplifier Characteristics",
+    "objective": "To study the voltage gain, input/output characteristics, and saturation limits of an operational amplifier (IC 741) in inverting and non-inverting configurations.",
+    "points": [
+      "An operational amplifier is a high-gain differential amplifier with very high input impedance and very low output impedance.",
+      "In the inverting configuration, the input signal is applied to the inverting (-) terminal through an input resistor R₁, with feedback resistor Rf connecting output to inverting input.",
+      "In the non-inverting configuration, the input signal is applied directly to the non-inverting (+) terminal, with the feedback network connected to the inverting terminal.",
+      "The output voltage is limited by the supply rails (±Vcc). When the theoretical output exceeds these limits, the amplifier saturates and clips the signal."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Inverting Amplifier Gain",
+        "tag": "Inverting Config",
+        "formula": "A_v = −(R_f / R₁)",
+        "variables": [
+          { "sym": "A_v", "name": "Closed-Loop Voltage Gain", "unit": "dimensionless", "desc": "Ratio of output voltage to input voltage" },
+          { "sym": "R_f", "name": "Feedback Resistor", "unit": "ohms (Ω)", "desc": "Resistor connecting output to inverting input" },
+          { "sym": "R₁", "name": "Input Resistor", "unit": "ohms (Ω)", "desc": "Resistor connecting signal source to inverting input" }
+        ],
+        "description": "The negative sign indicates 180° phase inversion between input and output. Gain magnitude is set entirely by the resistor ratio.",
+        "physicalSignificance": "Provides predictable, stable gain independent of the op-amp's open-loop characteristics."
+      },
+      {
+        "name": "Non-Inverting Amplifier Gain",
+        "tag": "Non-Inverting Config",
+        "formula": "A_v = 1 + (R_f / R₁)",
+        "variables": [
+          { "sym": "A_v", "name": "Closed-Loop Voltage Gain", "unit": "dimensionless", "desc": "Ratio of output voltage to input voltage" },
+          { "sym": "R_f", "name": "Feedback Resistor", "unit": "ohms (Ω)", "desc": "Resistor in feedback path" },
+          { "sym": "R₁", "name": "Ground Resistor", "unit": "ohms (Ω)", "desc": "Resistor connecting inverting input to ground" }
+        ],
+        "description": "Output is in-phase with input (no phase inversion). Minimum gain is unity (when Rf = 0 or R₁ = ∞).",
+        "physicalSignificance": "Used when signal polarity must be preserved, such as in voltage followers and buffer circuits."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Operational Amplifier IC (μA741 / TL081)", "spec": "DIP-8 Integrated Circuit (Supply Rails ±12 V to ±15 V)", "quantity": "2 Units", "icon": "⚡" },
+    { "name": "Dual-Tracking Regulated DC Power Supply", "spec": "±12 V / ±15 V Dual DC Supply with Common Ground", "quantity": "1 Unit", "icon": "🔋" },
+    { "name": "Audio / Function Signal Generator", "spec": "1 Hz – 1 MHz Sine / Square / Triangle Wave Generator", "quantity": "1 Unit", "icon": "🎛️" },
+    { "name": "Precision Metal Film Resistors", "spec": "R₁ = 10 kΩ, Rf = 50 kΩ / 100 kΩ (±1% Tolerance)", "quantity": "1 Set", "icon": "🔲" },
+    { "name": "Dual-Trace Digital Storage Oscilloscope", "spec": "20 MHz DSO (CH1: Input Signal, CH2: Output Waveform)", "quantity": "1 Unit", "icon": "📈" },
+    { "name": "Digital Multimeter (DMM)", "spec": "Input Impedance 10 MΩ for DC Bias & Rail Verification", "quantity": "1 Unit", "icon": "📟" },
+    { "name": "Solderless Breadboard & Hookup Wires", "spec": "830 Tie Points with Rigid Color-Coded Jumper Leads", "quantity": "1 Unit", "icon": "🔌" }
+  ],
+
+  "procedure": [
+    "Select the Op-Amp mode (Inverting or Non-Inverting).",
+    "Set the feedback resistor (Rf) and input resistor (Rin).",
+    "Apply the DC input voltage (Vin) within the limits of the supply rails (±15V).",
+    "Observe the output voltage (Vout) on the multimeter.",
+    "Calculate the theoretical voltage gain.",
+    "Compare the theoretical Vout with the observed Vout and note any saturation clipping."
+  ],
+
+  "observations": {
+    "name": "OpAmp_Characteristics",
+    "rows": [
+      { "id": "mode", "label": "Configuration Mode", "type": "input" },
+      { "id": "vin", "label": "Input Voltage Vin (V)", "type": "input" },
+      { "id": "rf", "label": "Feedback Resistor Rf (kΩ)", "type": "input" },
+      { "id": "rin", "label": "Input Resistor Rin (kΩ)", "type": "input" },
+      { "id": "gain", "label": "Theoretical Gain Av", "type": "observed" },
+      { "id": "vout", "label": "Output Voltage Vout (V)", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — Operational Amplifier",
+    "overview": "Calculate closed-loop voltage gain, ideal output voltage, phase shift, and test against power supply rail clipping thresholds.",
+    "steps": [
+      { "step": 1, "title": "Calculate Closed-Loop Voltage Gain (A_v)", "desc": "Calculate gain based on the selected configuration topology:", "equation": "Inverting: A_v = −(R_f / R₁)  |  Non-Inverting: A_v = 1 + (R_f / R₁)" },
+      { "step": 2, "title": "Calculate Theoretical Unclipped Output Voltage", "desc": "Multiply closed-loop gain by applied input voltage:", "equation": "V_out,ideal = A_v × V_in" },
+      { "step": 3, "title": "Determine Power Supply Saturation Thresholds", "desc": "For dual DC rails ±V_CC (e.g. ±12 V), maximum output swing is bounded by saturation limits:", "equation": "V_sat+ ≈ +V_CC − 1.5 V  and  V_sat− ≈ −V_CC + 1.5 V  (or ±V_CC for rail-to-rail models)" },
+      { "step": 4, "title": "Evaluate Clipping & Saturation Condition", "desc": "Compare theoretical output against saturation rails:", "equation": "V_out = +V_sat if V_out,ideal > +V_sat;  V_out = −V_sat if V_out,ideal < −V_sat; else V_out = V_out,ideal" }
+    ],
+    "workedExample": {
+      "title": "Op-Amp 741 Dual Rail Analysis",
+      "given": "Configuration: Inverting, R₁ = 10 kΩ, R_f = 40 kΩ, Supply Rails = ±12.0 V, Input Voltage V_in = +1.50 V",
+      "steps": [
+        "1. Closed-Loop Gain: A_v = −(40 kΩ / 10 kΩ) = −4.00",
+        "2. Theoretical Output: V_out,ideal = −4.00 × (+1.50 V) = −6.00 V",
+        "3. Saturation Limit Check: |−6.00 V| < 12.0 V (Linear Region satisfied)",
+        "4. Actual Output Voltage: V_out = −6.00 V (180° inverted phase)",
+        "5. Overdrive Test: If V_in is raised to +3.50 V ==> V_out,ideal = −14.0 V ==> Clipped to −12.00 V (Hard Negative Saturation)"
+      ],
+      "conclusion": "Within the linear window (|V_in| ≤ 3.0 V), output tracks linearly with an exact voltage gain of -4.00. Beyond 3.0 V, hard saturation clips the waveform."
+    }
+  },
+
+  "viva": [
+    ["What is the concept of Virtual Ground in an Op-Amp?", "In an inverting configuration with feedback, the inverting terminal is kept at approximately 0V by the amplifier because the non-inverting terminal is grounded, despite having no physical connection to ground."],
+    ["Why does an Op-Amp saturate?", "The output voltage cannot exceed the DC supply voltage rails (+Vcc and -Vee). If the input times the gain demands a higher voltage, the signal clips (saturates)."]
+  ]
+}

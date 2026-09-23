@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getExperimentConfig } from "./engine/ExperimentRegistry";
 
 export default function LabReportModal({
   isOpen,
@@ -17,6 +18,8 @@ export default function LabReportModal({
 
   if (!isOpen) return null;
 
+  const config = getExperimentConfig(experiment);
+  const apparatus = config?.apparatus || [];
   const validRuns = observations.filter((obs) => obs !== null);
   const reportDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -155,10 +158,40 @@ export default function LabReportModal({
               </div>
             </div>
 
-            {/* SECTION 1: Experimental Observation Table */}
+            {/* SECTION 1: Required Apparatus & Laboratory Bench Equipment */}
+            {apparatus.length > 0 && (
+              <div className="report-section">
+                <h3 className="report-section-title">
+                  1. Required Apparatus & Laboratory Bench Setup
+                </h3>
+                <table className="report-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "35%" }}>Equipment / Instrument</th>
+                      <th style={{ width: "50%" }}>Technical Specification / Rating</th>
+                      <th style={{ width: "15%", textAlign: "center" }}>Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apparatus.map((item, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: "600" }}>
+                          <span style={{ marginRight: "6px" }}>{item.icon}</span>
+                          {item.name}
+                        </td>
+                        <td style={{ color: "#475569", fontSize: "12px" }}>{item.spec}</td>
+                        <td style={{ textAlign: "center", fontWeight: "700" }}>{item.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* SECTION 2: Experimental Observation Table */}
             <div className="report-section">
               <h3 className="report-section-title">
-                1. Experimental Observations & Recorded Telemetry
+                2. Experimental Observations & Recorded Telemetry
               </h3>
               {validRuns.length === 0 ? (
                 <div className="report-empty-notice">
@@ -196,10 +229,10 @@ export default function LabReportModal({
               )}
             </div>
 
-            {/* SECTION 2: Dynamic Analytical Verification & Error Analysis */}
+            {/* SECTION 3: Dynamic Analytical Verification & Error Analysis */}
             <div className="report-section">
               <h3 className="report-section-title">
-                2. Analytical Calculations & Percentage Error Analysis
+                3. Analytical Calculations & Percentage Error Analysis
               </h3>
               <p className="report-section-intro">
                 Mathematical verification comparing observed experimental outcomes against theoretical physical governing laws:
@@ -226,7 +259,7 @@ export default function LabReportModal({
               )}
             </div>
 
-            {/* SECTION 3: Signatures & Certification Block */}
+            {/* SECTION 4: Signatures & Certification Block */}
             <div className="report-signatures-block">
               <div className="signature-box">
                 <div className="signature-line" />

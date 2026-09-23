@@ -34,6 +34,12 @@ export const ENDPOINTS = {
   // Op-Amp
   opampSimulate: `${API_BASE_URL}/api/opamp/simulate`,
 
+  // VAIL 2.0 Engine Registry & Assistant
+  experiments: `${API_BASE_URL}/api/experiments`,
+  experimentInfo: (id) => `${API_BASE_URL}/api/experiments/${id}`,
+  experimentCompute: (id) => `${API_BASE_URL}/api/experiments/${id}/compute`,
+  assistantChat: `${API_BASE_URL}/api/assistant/chat`,
+
   // Master health check
   health: `${API_BASE_URL}/health`,
 };

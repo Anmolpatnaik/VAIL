@@ -4,7 +4,7 @@ import VibrationCharts from "./vibrationstringcharts";
 import ValidatedParameterControl from "./ValidatedParameterControl";
 import { ENDPOINTS } from "./apiConfig";
 
-export default function VibrationStringSimulation({ onSaveData }) {
+export default function VibrationStringSimulation({ onSaveData, onSimulationUpdate }) {
   const [params, setParams] = useState({
     length: 1.0,
     tension: 4.0,
@@ -20,6 +20,23 @@ export default function VibrationStringSimulation({ onSaveData }) {
   const [invalidInputs, setInvalidInputs] = useState({});
   const hasInvalid = Object.values(invalidInputs).some(Boolean);
   const setFieldInvalid = (field, isVal) => setInvalidInputs(p => ({ ...p, [field]: !isVal }));
+
+  const waveSpeed = Math.sqrt(Math.max(params.tension, 0) / Math.max(params.linear_density, 0.0001));
+  const frequency = (params.mode / (2.0 * Math.max(params.length, 0.1))) * waveSpeed;
+  const wavelength = (2.0 * params.length) / Math.max(params.mode, 1);
+
+  React.useEffect(() => {
+    if (onSimulationUpdate) {
+      onSimulationUpdate({
+        tension: Number(params.tension.toFixed(2)),
+        frequency: Number(frequency.toFixed(1)),
+        wavelength: Number(wavelength.toFixed(2)),
+        harmonicMode: params.mode,
+        waveSpeed: Number(waveSpeed.toFixed(1)),
+        length: params.length,
+      });
+    }
+  }, [params.tension, params.mode, params.length, frequency, wavelength, waveSpeed, onSimulationUpdate]);
 
   const [results, setResults] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);

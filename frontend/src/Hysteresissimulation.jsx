@@ -83,7 +83,7 @@ const MATERIALS = {
   }
 };
 
-export default function HysteresisSimulation({ onSaveData }) {
+export default function HysteresisSimulation({ onSaveData, onSimulationUpdate }) {
   /*
   -------------------------------------------------------
   EXPERIMENTAL & MATERIAL PARAMETERS
@@ -121,6 +121,7 @@ export default function HysteresisSimulation({ onSaveData }) {
 
   const lastTimeRef = useRef(null);
   const elapsedRef = useRef(0);
+  const lastStateUpdateRef = useRef(0);
 
   // Maximum field calculations with safety guards for zero values
   const maximumCurrent = voltage / 100;
@@ -129,6 +130,21 @@ export default function HysteresisSimulation({ onSaveData }) {
   const safeDivisor = 2 * Math.PI * Math.max(frequency, 0.1) * Math.max(turns, 1) * Math.max(coreAreaM2, 1e-7);
   let maximumFluxDensity = voltage > 0 ? (voltage / safeDivisor) * material.saturationFactor : 0;
   maximumFluxDensity = Math.min(maximumFluxDensity || 0, 2.2);
+
+  useEffect(() => {
+    if (onSimulationUpdate) {
+      onSimulationUpdate({
+        maxH: Number(maximumField.toFixed(1)),
+        maxB: Number(maximumFluxDensity.toFixed(2)),
+        loopArea: Number((maximumField * maximumFluxDensity * 4 * material.coercivityRatio).toFixed(1)),
+        loss: Number(loss.toFixed(1)),
+        dcv: Number(voltage.toFixed(2)),
+        acv: Number(voltage.toFixed(2)),
+        field: Number(magneticField.toFixed(1)),
+        fluxDensity: Number(fluxDensity.toFixed(2)),
+      });
+    }
+  }, [maximumField, maximumFluxDensity, loss, voltage, magneticField, fluxDensity, material.coercivityRatio, onSimulationUpdate]);
 
   /*
   -------------------------------------------------------
@@ -201,16 +217,20 @@ export default function HysteresisSimulation({ onSaveData }) {
         Math.pow(Math.abs(maximumFluxDensity), 1.6) *
         (material.type === "rhombus" ? 2.4 : 1.0);
 
-      setMagneticField(H);
-      setFluxDensity(B);
-      setCurrent(baseCurrent);
-      setFlux(phi);
-      setLoss(hysteresisLoss);
+      // Throttle React state updates to ~30 FPS (every 33ms) to eliminate main-thread stutter
+      if (!lastStateUpdateRef.current || timestamp - lastStateUpdateRef.current >= 33) {
+        lastStateUpdateRef.current = timestamp;
+        setMagneticField(H);
+        setFluxDensity(B);
+        setCurrent(baseCurrent);
+        setFlux(phi);
+        setLoss(hysteresisLoss);
 
-      setLoopPoints((prev) => {
-        const next = [...prev, { h: H, b: B }];
-        return next.length > 500 ? next.slice(next.length - 500) : next;
-      });
+        setLoopPoints((prev) => {
+          const next = [...prev, { h: H, b: B }];
+          return next.length > 200 ? next.slice(next.length - 200) : next;
+        });
+      }
 
       animationFrame = requestAnimationFrame(animate);
     };
@@ -346,7 +366,7 @@ export default function HysteresisSimulation({ onSaveData }) {
           gridTemplateColumns: "minmax(280px, 340px) 1fr",
           gap: "20px",
           marginTop: "16px",
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
         {/* CONTROLS PANEL */}
@@ -526,11 +546,14 @@ export default function HysteresisSimulation({ onSaveData }) {
         {/* 3D LABORATORY VIEW */}
         <div
           style={{
-            height: "460px",
+            height: "100%",
+            minHeight: "560px",
             border: "1px solid #1e3a5f",
             borderRadius: "12px",
             overflow: "hidden",
             background: "#071321",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <Hysteresis3D

@@ -1,0 +1,163 @@
+{
+  "id": "rc",
+  "title": "Charging & Discharging of Capacitor",
+  "subtitle": "RC Circuit",
+  "icon": "🔌",
+  "branch": "cse",
+  "discipline": "Electrical Engineering",
+  "level": "BTech Year 1",
+  "description": "Study the charging and discharging characteristics of a capacitor in an RC circuit.",
+
+  "video": {
+    "title": "RC Circuit Charging & Discharging Tutorial",
+    "src": "/videos/rc.mp4",
+    "hasVideo": true,
+    "summary": "Detailed demonstration of capacitor charging, time constant calculation, and voltage-time curve plotting."
+  },
+
+  "safety": {
+    "protocol": "UPEM / Electrical Safety Protocol",
+    "isElectrical": true,
+    "precautions": [
+      {
+        "title": "⚡ Capacitive Charge Storage & Dielectric Puncture",
+        "severity": "warning",
+        "borderColor": "#f59e0b",
+        "titleColor": "#fbbf24",
+        "description": "Electrolytic capacitors store significant charge even after the power supply is switched off. Never short-circuit terminals directly; always discharge via a resistor."
+      },
+      {
+        "title": "🔌 Polarity & Reverse Breakdown",
+        "severity": "danger",
+        "borderColor": "#ef4444",
+        "titleColor": "#f87171",
+        "description": "Observing polarity on polarized units is critical. Reversing connections causes internal gas generation and risk of casing rupture."
+      }
+    ]
+  },
+
+  "theory": {
+    "title": "📖 Theory — RC Circuit Transient Response",
+    "objective": "To investigate the exponential charging and discharging behavior of a capacitor across a resistive load, calculate the capacitive time constant τ = RC, and verify transient voltage and current profiles.",
+    "points": [
+      "Capacitors store electrostatic potential energy in an electric field established across opposing conductive plates separated by a dielectric medium.",
+      "When connected to a constant DC voltage source through a resistor, charge accumulates gradually rather than instantaneously due to the resistive opposition to current flow.",
+      "The time constant τ = RC governs the rate of energy transfer; at t = τ, the capacitor reaches ~63.2% of its full charge voltage.",
+      "During discharge across a load, stored electrostatic energy dissipates exponentially, releasing stored charge at an identical characteristic time scale."
+    ],
+    "formulaDetails": [
+      {
+        "name": "Capacitive Time Constant",
+        "tag": "Core Parameter",
+        "formula": "τ = R · C",
+        "variables": [
+          { "sym": "τ", "name": "Time Constant", "unit": "seconds (s)", "desc": "Time interval required for charging to 63.2% or discharging to 36.8%" },
+          { "sym": "R", "name": "Total Resistance", "unit": "ohms (Ω)", "desc": "Current-limiting series resistor in circuit" },
+          { "sym": "C", "name": "Capacitance", "unit": "farads (F)", "desc": "Electrostatic storage capacity of capacitor" }
+        ],
+        "description": "Quantifies the dynamic responsiveness of the RC circuit. A higher resistance or larger capacitance prolongs charging, whereas smaller values yield rapid transient response.",
+        "physicalSignificance": "After 5 time constants (t = 5τ), the circuit achieves 99.3% completion and is practically recognized as having reached steady-state DC equilibrium."
+      },
+      {
+        "name": "Exponential Capacitor Charging Voltage",
+        "tag": "Charging Law",
+        "formula": "V_C(t) = V₀ · (1 − e^(−t / τ))",
+        "variables": [
+          { "sym": "V_C(t)", "name": "Capacitor Voltage at time t", "unit": "volts (V)", "desc": "Instantaneous potential difference across capacitor plates" },
+          { "sym": "V₀", "name": "DC Supply Voltage", "unit": "volts (V)", "desc": "Maximum terminal voltage delivered by bench power supply" },
+          { "sym": "t", "name": "Elapsed Time", "unit": "seconds (s)", "desc": "Time elapsed since initiation of charging cycle" },
+          { "sym": "e", "name": "Euler's Constant", "unit": "dimensionless", "desc": "Base of natural logarithm (≈ 2.71828)" }
+        ],
+        "description": "Models how charging rate is highest initially when the potential difference between the supply and uncharged capacitor is greatest, tapering off exponentially as plate charge accumulates.",
+        "physicalSignificance": "At t = 0, V_C = 0 V (behaves like a short circuit). As t → ∞, V_C → V₀ (behaves like an open circuit, blocking DC current)."
+      },
+      {
+        "name": "Transient Charging Current",
+        "tag": "Ohm's Transient Law",
+        "formula": "I(t) = (V₀ / R) · e^(−t / τ) = I₀ · e^(−t / τ)",
+        "variables": [
+          { "sym": "I(t)", "name": "Instantaneous Current", "unit": "amperes (A)", "desc": "Live current circulating through the series branch" },
+          { "sym": "I₀", "name": "Initial Peak Current", "unit": "amperes (A)", "desc": "Maximum instantaneous current occurring at the instant of switch closure (V₀ / R)" },
+          { "sym": "R", "name": "Resistance", "unit": "ohms (Ω)", "desc": "Series current-limiting resistor" }
+        ],
+        "description": "Current starts at its maximum surge value (V₀ / R) at t = 0 because the uncharged capacitor provides zero initial counter-electromotive force, decaying toward zero as the capacitor charges.",
+        "physicalSignificance": "Demonstrates that current leads voltage in capacitive circuits during transient excitation."
+      },
+      {
+        "name": "Exponential Capacitor Discharging Voltage",
+        "tag": "Discharge Law",
+        "formula": "V_C(t) = V_initial · e^(−t / τ)",
+        "variables": [
+          { "sym": "V_C(t)", "name": "Discharge Voltage at time t", "unit": "volts (V)", "desc": "Remaining plate potential during resistive discharge" },
+          { "sym": "V_initial", "name": "Pre-Discharge Voltage", "unit": "volts (V)", "desc": "Stored potential across plates prior to opening the supply path" }
+        ],
+        "description": "When the DC supply is disconnected and plates are bridged across the resistor, stored electrostatic energy discharges through the resistor, causing voltage to fall exponentially toward 0 V.",
+        "physicalSignificance": "At t = τ, voltage falls to 36.8% of its initial value; by t = 5τ, over 99% of stored electrostatic energy has been dissipated as heat."
+      }
+    ]
+  },
+
+  "apparatus": [
+    { "name": "Regulated DC Power Supply", "spec": "0 – 30 V Variable, 2 A Current Limiting", "quantity": "1 Unit", "icon": "🔋" },
+    { "name": "Decade Resistor Box / Resistor", "spec": "1 kΩ – 10 kΩ (±1% Precision Metal Film)", "quantity": "1 Unit", "icon": "🔲" },
+    { "name": "Electrolytic Capacitor", "spec": "1000 μF, 25 V Working Voltage", "quantity": "1 Unit", "icon": "⚡" },
+    { "name": "SPDT Toggle Switch", "spec": "Single-Pole Double-Throw Charge / Discharge Selector", "quantity": "1 Unit", "icon": "🎚️" },
+    { "name": "Digital Multimeter (DMM)", "spec": "3.5-Digit, 10 MΩ Input Impedance (DCV / DCA)", "quantity": "1 Unit", "icon": "📟" },
+    { "name": "Digital Stopwatch / Bench Timer", "spec": "Resolution 0.01 s with Split Lap Counter", "quantity": "1 Unit", "icon": "⏱️" },
+    { "name": "Banana-to-Alligator Patch Cords", "spec": "Color-coded Red / Black 4 mm Shrouded Leads", "quantity": "1 Set", "icon": "🔌" }
+  ],
+
+  "procedure": [
+    "Connect the resistor and capacitor to the DC supply as shown in the virtual circuit.",
+    "Set the required supply voltage.",
+    "Select the resistance and capacitance values.",
+    "Start the charging process.",
+    "Observe the capacitor voltage at different time intervals.",
+    "Calculate the time constant τ = RC.",
+    "Repeat the experiment for discharging of the capacitor.",
+    "Compare the observed values with the theoretical values."
+  ],
+
+  "observations": {
+    "name": "RC_Circuit",
+    "rows": [
+      { "id": "voltage", "label": "Supply Voltage (V)", "type": "input" },
+      { "id": "resistance", "label": "Resistance (Ω)", "type": "input" },
+      { "id": "capacitance", "label": "Capacitance (μF)", "type": "input" },
+      { "id": "tau", "label": "Time Constant τ (s)", "type": "observed" },
+      { "id": "vc", "label": "Capacitor Voltage Vc (V)", "type": "observed" }
+    ]
+  },
+
+  "calculations": {
+    "title": "🧮 Step-by-Step Calculations — RC Circuit",
+    "overview": "Follow this standardized procedure to analyze charging and discharging dynamics, compute time constants, and calculate instantaneous capacitor values from your experimental settings.",
+    "steps": [
+      { "step": 1, "title": "Unit Conversion for Capacitance", "desc": "Convert capacitance from microfarads (μF) into standard SI Farads (F):", "equation": "C (F) = C (μF) × 10⁻⁶" },
+      { "step": 2, "title": "Compute Circuit Time Constant (τ)", "desc": "Multiply circuit resistance by capacitance in Farads to obtain the time constant in seconds:", "equation": "τ = R (Ω) × C (F)" },
+      { "step": 3, "title": "Determine Initial Inrush Current (I₀)", "desc": "At switch closure (t = 0), uncharged plates act as a short circuit. Compute maximum current using Ohm's Law:", "equation": "I₀ = V₀ / R" },
+      { "step": 4, "title": "Calculate Theoretical Voltage at t = τ", "desc": "Evaluate the capacitor voltage after exactly one time constant (63.21% of full supply):", "equation": "V_C(τ) = V₀ × (1 − e⁻¹) = V₀ × (1 − 0.36788) ≈ 0.6321 × V₀" },
+      { "step": 5, "title": "Verify Full Steady-State Duration", "desc": "Calculate the time required for capacitor to charge beyond 99.3% to reach practical equilibrium:", "equation": "t_steady = 5 × τ" }
+    ],
+    "workedExample": {
+      "title": "Standard Physical Lab Worked Example",
+      "given": "Supply Voltage V₀ = 10.0 V, Resistance R = 2000 Ω, Capacitance C = 1000 μF",
+      "steps": [
+        "1. Capacitance in SI: C = 1000 × 10⁻⁶ F = 0.001 F",
+        "2. Time Constant: τ = 2000 Ω × 0.001 F = 2.000 s",
+        "3. Peak Surge Current: I₀ = 10.0 V / 2000 Ω = 0.005 A = 5.00 mA",
+        "4. Voltage at t = 2.0 s: V_C(2s) = 10.0 × (1 − e⁻¹) = 10.0 × 0.6321 = 6.32 V",
+        "5. Full Charge Duration: t_full = 5 × 2.0 s = 10.0 s"
+      ],
+      "conclusion": "At t = 2.00 s, the multimeter should read 6.32 V and 1.84 mA. At t = 10.0 s, the capacitor is fully charged to 10.00 V and current drops to 0.00 mA."
+    }
+  },
+
+  "viva": [
+    ["What is a capacitor?", "A device used to store electrical charge."],
+    ["What is the time constant of an RC circuit?", "τ = RC."],
+    ["What happens to capacitor voltage during charging?", "It increases exponentially towards the supply voltage."],
+    ["What happens during discharging?", "The capacitor voltage decreases exponentially with time."],
+    ["What is the unit of capacitance?", "Farad (F)."]
+  ]
+}

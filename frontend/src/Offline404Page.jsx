@@ -19,6 +19,8 @@ export default function Offline404Page({
         const success = await onRetry();
         if (!success) {
           setCheckMessage("❌ Still offline. Please check your internet connection.");
+        } else {
+          setCheckMessage("✅ Internet connection restored!");
         }
       } else {
         await new Promise((resolve) => setTimeout(resolve, 800));
